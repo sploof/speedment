@@ -78,6 +78,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import static javafx.util.Duration.ZERO;
@@ -94,6 +95,7 @@ public class SceneController implements Initializable {
     
     private final static Logger LOGGER = LogManager.getLogger(SceneController.class);
     private final static String GITHUB_URL = "https://github.com/speedment/speedment";
+    private final static String GITTER_URL = "https://gitter.im/speedment/speedment/~embed";
 
     @FXML private Button buttonNew;
     @FXML private Button buttonOpen;
@@ -116,6 +118,7 @@ public class SceneController implements Initializable {
     @FXML private MenuItem mbAbout;
     @FXML private StackPane arrowContainer;
     @FXML private Label arrow;
+    @FXML private WebView community;
 
     private File savedFile;
     private final Stage stage;
@@ -256,6 +259,9 @@ public class SceneController implements Initializable {
         
         // Send statistics.
         Statistics.onGuiStarted();
+        
+        WebEngine webEngine = community.getEngine();
+        webEngine.load(GITTER_URL);
     }
 
     public Stage getStage() {

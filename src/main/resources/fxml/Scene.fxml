@@ -98,30 +98,43 @@
                               </TitledPane>
                            </items>
                         </SplitPane>
-                        <SplitPane dividerPositions="0.7" layoutX="216.0" layoutY="105.0" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
-                          <items>
-                              <ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefViewportHeight="342.0" prefViewportWidth="631.0">
+                        <TabPane tabClosingPolicy="UNAVAILABLE">
+                           <tabs>
+                              <Tab text="Database">
                                  <content>
-                                    <VBox fx:id="propertiesContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="12.0">
-                                       <padding>
-                                          <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
-                                       </padding>
-                                    </VBox>
-                                 </content>
-                              </ScrollPane>
-                              <ScrollPane fitToHeight="true" fitToWidth="true" layoutX="216.0" layoutY="-19.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0">
-                                <content>
-                                    <TitledPane animated="false" collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Output">
-                                       <content>
-                                          <javafx.scene.web.WebView fx:id="output" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0">
+                                    <SplitPane dividerPositions="0.7" layoutX="216.0" layoutY="105.0" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
+                                      <items>
+                                          <ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefViewportHeight="342.0" prefViewportWidth="631.0">
+                                             <content>
+                                                <VBox fx:id="propertiesContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="12.0">
+                                                   <padding>
+                                                      <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                                                   </padding>
+                                                </VBox>
+                                             </content>
+                                          </ScrollPane>
+                                          <ScrollPane fitToHeight="true" fitToWidth="true" layoutX="216.0" layoutY="-19.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0">
+                                            <content>
+                                                <TitledPane animated="false" collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Output">
+                                                   <content>
+                                                      <javafx.scene.web.WebView fx:id="output" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0">
                                           
                                           </javafx.scene.web.WebView>
-                                       </content>
-                                    </TitledPane>
-                                </content>
-                              </ScrollPane>
-                          </items>
-                        </SplitPane>
+                                                   </content>
+                                                </TitledPane>
+                                            </content>
+                                          </ScrollPane>
+                                      </items>
+                                    </SplitPane>
+                                 </content>
+                              </Tab>
+                              <Tab text="Community">
+                                 <content>
+                                    <WebView fx:id="community" prefHeight="200.0" prefWidth="200.0" />
+                                 </content>
+                              </Tab>
+                           </tabs>
+                        </TabPane>
                     </items>
                   </SplitPane>
                </children>
