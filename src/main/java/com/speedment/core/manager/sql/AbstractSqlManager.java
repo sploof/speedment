@@ -16,119 +16,54 @@
  */
 package com.speedment.core.manager.sql;
 
+import com.speedment.core.Buildable;
 import com.speedment.core.config.model.Column;
 import com.speedment.core.config.model.Dbms;
 import com.speedment.core.config.model.PrimaryKeyColumn;
-import com.speedment.core.config.model.Schema;
-import com.speedment.core.config.model.Table;
-import com.speedment.core.config.model.parameters.DbmsType;
-import com.speedment.core.Buildable;
+import com.speedment.core.db.DbmsHandler;
+import com.speedment.core.db.crud.Result;
+import com.speedment.core.db.crud.impl.*;
 import com.speedment.core.manager.AbstractManager;
 import com.speedment.core.manager.metaresult.MetaResult;
-import com.speedment.core.manager.metaresult.SqlMetaResult;
-import com.speedment.core.db.AsynchronousQueryResult;
-import com.speedment.core.db.DbmsHandler;
-import com.speedment.core.db.impl.SqlFunction;
 import com.speedment.core.platform.Platform;
 import com.speedment.core.platform.component.DbmsHandlerComponent;
-import com.speedment.core.platform.component.JavaTypeMapperComponent;
-import com.speedment.core.runtime.typemapping.StandardJavaTypeMapping;
-import com.speedment.logging.Logger;
-import com.speedment.logging.LoggerManager;
-import static com.speedment.util.stream.OptionalUtil.unwrap;
-import com.speedment.util.stream.builder.ReferenceStreamBuilder;
-import com.speedment.util.stream.builder.pipeline.BasePipeline;
-import java.math.BigDecimal;
-import java.net.URL;
-import java.sql.Array;
-import java.sql.Blob;
-import java.sql.Clob;
-import java.sql.Date;
-import java.sql.NClob;
-import java.sql.Ref;
-import java.sql.ResultSet;
-import java.sql.RowId;
-import java.sql.SQLException;
-import java.sql.SQLXML;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.List;
+
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.BaseStream;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  *
- * @author pemi
- *
  * @param <PK> PrimaryKey type for this Manager
  * @param <ENTITY> Entity type for this Manager
  * @param <BUILDER> Builder type for this Manager
+ *
+ * @author pemi
+ * @author Emil Forslund
  */
-public abstract class AbstractSqlManager<PK, ENTITY, BUILDER extends Buildable<ENTITY>> extends AbstractManager<PK, ENTITY, BUILDER> implements SqlManager<PK, ENTITY, BUILDER> {
+public abstract class AbstractSqlManager<PK, ENTITY, BUILDER extends Buildable<ENTITY>>
+    extends AbstractManager<PK, ENTITY, BUILDER> implements SqlManager<PK, ENTITY, BUILDER> {
 
-    private static final Logger LOGGER = LoggerManager.getLogger(AbstractSqlManager.class);
+    private Function<Result, ENTITY> entityMapper;
 
-    private SqlFunction<ResultSet, ENTITY> sqlEntityMapper;
+    @Override
+    public Function<Result, ENTITY> getEntityMapper() {
+        return entityMapper;
+    }
+
+    @Override
+    public void setEntityMapper(Function<Result, ENTITY> entityMapper) {
+        this.entityMapper = entityMapper;
+    }
 
     @Override
     public Stream<ENTITY> stream() {
-        final AsynchronousQueryResult<ENTITY> asynchronousQueryResult = dbmsHandler().executeQueryAsync(sqlSelect(""), Collections.emptyList(), sqlEntityMapper.unWrap());
-        final SqlStreamTerminator<PK, ENTITY, BUILDER> terminator = new SqlStreamTerminator<>(this, asynchronousQueryResult);
-        final Supplier<BaseStream<?, ?>> initialSupplier = () -> asynchronousQueryResult.stream();
-        final Stream<ENTITY> result = new ReferenceStreamBuilder<>(new BasePipeline<>(initialSupplier), terminator);
-        result.onClose(asynchronousQueryResult::close); // Make sure we are closing the ResultSet, Statement and Connection later
-        return result;
-    }
-
-    public <T> Stream<T> synchronousStreamOf(final String sql, final List<Object> values, SqlFunction<ResultSet, T> rsMapper) {
-        //LOGGER.debug(sql + " <- " + values);
-        return dbmsHandler().executeQuery(sql, values, rsMapper);
-    }
-
-    public String sqlColumnList() {
-        return sqlColumnList(Function.identity());
-    }
-
-    public String sqlColumnList(Function<String, String> postMapper) {
-        return getTable().streamOf(Column.class)
-            .map(Column::getName)
-            .map(this::quoteField)
-            .map(postMapper)
-            .collect(Collectors.joining(","));
-    }
-
-    public String sqlPrimaryKeyColumnList(Function<String, String> postMapper) {
-        return getTable().streamOf(PrimaryKeyColumn.class)
-            .map(PrimaryKeyColumn::getName)
-            .map(this::quoteField)
-            .map(postMapper)
-            .collect(Collectors.joining(" AND "));
-    }
-
-    public String sqlTableReference() {
-        return getTable().getRelativeName(Schema.class, this::quoteField);
-    }
-
-    public String sqlSelect(String suffix) {
-        final String sql = "select " + sqlColumnList() + " from " + sqlTableReference() + suffix;
-        return sql;
-    }
-
-    @Override
-    public SqlFunction<ResultSet, ENTITY> getSqlEntityMapper() {
-        return sqlEntityMapper;
-    }
-
-    @Override
-    public void setSqlEntityMapper(SqlFunction<ResultSet, ENTITY> sqlEntityMapper) {
-        this.sqlEntityMapper = sqlEntityMapper;
+        return dbmsHandler().executeRead(
+            new ReadImpl.Builder(getTable())
+                .build(),
+            entityMapper
+        );
     }
 
     @Override
@@ -138,40 +73,16 @@ public abstract class AbstractSqlManager<PK, ENTITY, BUILDER extends Buildable<E
 
     @Override
     public Optional<ENTITY> persist(ENTITY entity, Consumer<MetaResult<ENTITY>> listener) {
-        final Table table = getTable();
-        final StringBuilder sb = new StringBuilder();
-        sb.append("insert into ").append(sqlTableReference());
-        sb.append(" (").append(sqlColumnList()).append(")");
-        sb.append(" values ");
-        sb.append("(").append(sqlColumnList(c -> "?")).append(")");
 
-        final List<Object> values = table.streamOf(Column.class).map(c -> unwrap(get(entity, c))).collect(Collectors.toList());
+        // TODO Notify listener
 
-        final Function<BUILDER, Consumer<List<Long>>> generatedKeyconsumer = builder -> {
-            return l -> {
-                if (!l.isEmpty()) {
-                    final AtomicInteger cnt = new AtomicInteger();
-                    // Just assume that they are in order, what else is there to do?
-                    table.streamOf(Column.class)
-                        .filter(Column::isAutoincrement)
-                        .forEachOrdered(column -> {
-                            // Cast from Long to the column target type
+        final CreateImpl.Builder create = new CreateImpl.Builder(getTable());
 
-                            final Object val = Platform.get()
-                            .get(JavaTypeMapperComponent.class)
-                            .apply(column.getMapping())
-                            .parse(
-                                l.get(cnt.getAndIncrement())
-                            );
+        getTable().streamOf(Column.class).forEachOrdered(
+            col -> create.with(col, get(entity, col))
+        );
 
-                            //final Object val = StandardJavaTypeMappingOld.parse(column.getMapping(), l.get(cnt.getAndIncrement()));
-                            set(builder, column, val);
-                        });
-                }
-            };
-        };
-
-        return executeUpdate(entity, sb.toString(), values, generatedKeyconsumer, listener);
+        return dbmsHandler().executeCreate(create.build(), entityMapper).findAny();
     }
 
     @Override
@@ -181,18 +92,22 @@ public abstract class AbstractSqlManager<PK, ENTITY, BUILDER extends Buildable<E
 
     @Override
     public Optional<ENTITY> update(ENTITY entity, Consumer<MetaResult<ENTITY>> listener) {
-        final Table table = getTable();
 
-        final StringBuilder sb = new StringBuilder();
-        sb.append("update ").append(sqlTableReference()).append(" set ");
-        sb.append(sqlColumnList(n -> n + " = ?"));
-        sb.append(" where ");
-        sb.append(sqlPrimaryKeyColumnList(pk -> pk + " = ?"));
+        // TODO Notify listener
 
-        final List<Object> values = table.streamOf(Column.class).map(c -> unwrap(get(entity, c))).collect(Collectors.toList());
-        table.streamOf(PrimaryKeyColumn.class).map(pkc -> pkc.getColumn()).forEachOrdered(c -> values.add(get(entity, c)));
+        final UpdateImpl.Builder update = new UpdateImpl.Builder(getTable());
 
-        return executeUpdate(entity, sb.toString(), values, NOTHING, listener);
+        getTable().streamOf(Column.class).forEachOrdered(
+            col -> update.with(col, get(entity, col))
+        );
+
+        getTable().streamOf(PrimaryKeyColumn.class)
+            .map(PrimaryKeyColumn::getColumn)
+            .forEachOrdered(col ->
+                update.where(SelectorImpl.standard(col, get(entity, col)))
+            );
+
+        return dbmsHandler().executeUpdate(update.build(), entityMapper).findAny();
     }
 
     @Override
@@ -202,178 +117,25 @@ public abstract class AbstractSqlManager<PK, ENTITY, BUILDER extends Buildable<E
 
     @Override
     public Optional<ENTITY> remove(ENTITY entity, Consumer<MetaResult<ENTITY>> listener) {
-        final Table table = getTable();
-        final StringBuilder sb = new StringBuilder();
-        sb.append("delete from ").append(sqlTableReference());
-        sb.append(" where ");
-        sb.append(sqlPrimaryKeyColumnList(pk -> pk + " = ?"));
-        final List<Object> values = table.streamOf(PrimaryKeyColumn.class).map(pk -> get(entity, pk.getColumn())).collect(Collectors.toList());
 
-        return executeUpdate(entity, sb.toString(), values, NOTHING, listener);
+        // TODO Notify listener
+
+        final DeleteImpl.Builder delete = new DeleteImpl.Builder(getTable());
+
+        getTable().streamOf(PrimaryKeyColumn.class)
+            .map(PrimaryKeyColumn::getColumn)
+            .forEachOrdered(col ->
+                    delete.where(SelectorImpl.standard(col, get(entity, col)))
+            );
+
+        return dbmsHandler().executeDelete(delete.build(), entityMapper).findAny();
     }
-
-    private Optional<ENTITY> executeUpdate(
-        final ENTITY entity,
-        final String sql,
-        final List<Object> values,
-        final Function<BUILDER, Consumer<List<Long>>> generatedKeyconsumer,
-        final Consumer<MetaResult<ENTITY>> listener
-    ) {
-        ENTITY newEntity;
-        SqlMetaResult<ENTITY> meta = null;
-        if (listener != null) {
-            meta = new SqlMetaResult<ENTITY>().setQuery(sql).setParameters(values);
-        }
-        try {
-            newEntity = executeUpdate(entity, sql, values, generatedKeyconsumer);
-        } catch (SQLException sqle) {
-            //LOGGER.error("Unable to persist", sqle);
-            if (meta != null) {
-                meta.setThrowable(sqle);
-            }
-            return Optional.empty();
-        } finally {
-            if (listener != null) {
-                listener.accept(meta);
-            }
-        }
-        return Optional.of(newEntity);
-    }
-
-    private ENTITY executeUpdate(
-        final ENTITY entity,
-        final String sql,
-        final List<Object> values,
-        final Function<BUILDER, Consumer<List<Long>>> generatedKeyconsumer
-    ) throws SQLException {
-        final BUILDER builder = toBuilder(entity);
-        dbmsHandler().executeUpdate(sql, values, generatedKeyconsumer.apply(builder));
-        return builder.build();
-    }
-
-    private String sqlQuote(Object o) {
-        if (o == null) {
-            return "null";
-        }
-        if (o instanceof Number) {
-            return o.toString();
-        }
-        return "'" + o.toString() + "'";
-    }
-
-    private final Function<BUILDER, Consumer<List<Long>>> NOTHING = b -> l -> { // Nothing to do for updates...
-    };
 
     protected Dbms getDbms() {
         return getTable().ancestor(Dbms.class).get();
     }
 
-    protected DbmsType getDbmsType() {
-        return getDbms().getType();
-    }
-
-    private String quoteField(final String s) {
-        final DbmsType dbmsType = getDbms().getType();
-        return dbmsType.getFieldEncloserStart() + s + dbmsType.getFieldEncloserEnd();
-    }
-
     protected DbmsHandler dbmsHandler() {
         return Platform.get().get(DbmsHandlerComponent.class).get(getDbms());
     }
-
-    // Null safe RS getters, must have the same name as ResultSet getters
-    protected Object getObject(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getObject(columnName));
-    }
-
-    protected Boolean getBoolean(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getBoolean(columnName));
-    }
-
-    protected Byte getByte(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getByte(columnName));
-    }
-
-    protected Short getShort(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getShort(columnName));
-    }
-
-    protected Integer getInt(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getInt(columnName));
-    }
-
-    protected Long getLong(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getLong(columnName));
-    }
-
-    protected Float getFloat(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getFloat(columnName));
-    }
-
-    protected Double getDouble(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getDouble(columnName));
-    }
-
-    protected String getString(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getString(columnName));
-    }
-
-    protected Date getDate(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getDate(columnName));
-    }
-
-    protected Time getTime(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getTime(columnName));
-    }
-
-    protected Timestamp getTimestamp(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getTimestamp(columnName));
-    }
-
-    protected BigDecimal getBigDecimal(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getBigDecimal(columnName));
-    }
-
-    protected Blob getBlob(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getBlob(columnName));
-    }
-
-    protected Clob getClob(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getClob(columnName));
-    }
-
-    protected Array getArray(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getArray(columnName));
-    }
-
-    protected Ref getRef(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getRef(columnName));
-    }
-
-    protected URL getURL(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getURL(columnName));
-    }
-
-    protected RowId getRowId(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getRowId(columnName));
-    }
-
-    protected NClob getNClob(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getNClob(columnName));
-    }
-
-    protected SQLXML getSQLXML(final ResultSet resultSet, final String columnName) throws SQLException {
-        return getNullableFrom(resultSet, rs -> rs.getSQLXML(columnName));
-    }
-
-    private <T> T getNullableFrom(ResultSet rs, SqlFunction<ResultSet, T> mapper) throws SQLException {
-        final T result = mapper.apply(rs);
-        if (rs.wasNull()) {
-            return null;
-        } else {
-            return result;
-        }
-
-    }
-
 }

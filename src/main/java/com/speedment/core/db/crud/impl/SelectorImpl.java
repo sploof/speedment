@@ -2,9 +2,7 @@ package com.speedment.core.db.crud.impl;
 
 import com.speedment.core.config.model.Column;
 import com.speedment.core.db.crud.Selector;
-import com.speedment.core.field.BinaryPredicateBuilder;
-import com.speedment.core.field.Operator;
-import com.speedment.core.field.UnaryPredicateBuilder;
+import com.speedment.core.field.*;
 
 import java.util.Optional;
 
@@ -90,5 +88,15 @@ public final class SelectorImpl implements Selector {
             predicate.getOperator(),
             null
         );
+    }
+
+    /**
+     * Constructs a standard key-value selector.
+     * @param key    the key
+     * @param value  the expected value
+     * @return       a selector for that match
+     */
+    public static Selector standard(Column key, Object value) {
+        return new SelectorImpl(key, StandardBinaryOperator.EQUAL, value);
     }
 }

@@ -17,9 +17,10 @@
 package com.speedment.core.manager.sql;
 
 import com.speedment.core.Buildable;
+import com.speedment.core.db.crud.Result;
 import com.speedment.core.manager.Manager;
-import com.speedment.core.db.impl.SqlFunction;
-import java.sql.ResultSet;
+
+import java.util.function.Function;
 
 /**
  *
@@ -30,9 +31,6 @@ import java.sql.ResultSet;
  */
 public interface SqlManager<PK, ENTITY, BUILDER extends Buildable<ENTITY>> extends Manager<PK, ENTITY, BUILDER> {
 
-    SqlFunction<ResultSet, ENTITY> getSqlEntityMapper();
-
-    void setSqlEntityMapper(SqlFunction<ResultSet, ENTITY> sqlEntityMapper);
-
-
+    Function<Result, ENTITY> getEntityMapper();
+    void setEntityMapper(Function<Result, ENTITY> entityMapper);
 }

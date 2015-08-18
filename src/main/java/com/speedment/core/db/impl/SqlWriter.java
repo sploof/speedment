@@ -12,10 +12,7 @@ import com.speedment.core.field.StandardUnaryOperator;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static com.speedment.util.Util.instanceNotAllowed;
 import static java.util.stream.Collectors.joining;
@@ -71,7 +68,7 @@ public final class SqlWriter {
      * Creates an SQL query that represents the specified CRUD command.
      * <p>
      * Values will not be written in plain text but replaced with '?' characters.
-     * To get a list of values, call the {@link #values(Valued)} method.
+     * To get a list of values, call the {@link #values(Operation)} method.
      *
      * @param create  the command to render
      * @return        the SQL query
@@ -115,7 +112,7 @@ public final class SqlWriter {
      * Creates an SQL query that represents the specified CRUD command.
      * <p>
      * Values will not be written in plain text but replaced with '?' characters.
-     * To get a list of values, call the {@link #values(Valued)} method.
+     * To get a list of values, call the {@link #values(Operation)} method.
      *
      * @param update  the command to render
      * @return        the SQL query
@@ -124,11 +121,7 @@ public final class SqlWriter {
         return buildOperation(update)
             .append(
                 update.getValues().entrySet().stream()
-                    .map(e ->
-                            formatColumnName(e.getKey()) +
-                                " = " +
-                                formatString(escapeValue(e.getValue()))
-                    )
+                    .map(e -> formatColumnName(e.getKey()) + " = ?")
                     .collect(joining(", "))
             )
             .append(buildSelection(update))
@@ -156,8 +149,24 @@ public final class SqlWriter {
      * @param operation  the operation
      * @return           the list of values
      */
-    public static List<Object> values(Valued operation) {
-        return operation.getValues().values().stream().collect(toList());
+    public static List<Object> values(Operation operation) {
+        final List<Object> values = new ArrayList<>();
+
+        if (operation instanceof Valued) {
+            final Valued valued = (Valued) operation;
+            values.addAll(valued.getValues().values());
+        }
+
+        if (operation instanceof Selective) {
+            final Selective selective = (Selective) operation;
+            values.addAll(selective.getSelectors()
+                .map(Selector::getOperand)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(toList()));
+        }
+
+        return values;
     }
 
     /**
@@ -198,8 +207,8 @@ public final class SqlWriter {
     private static String buildSelection(Selective selective) {
         return selective.getSelectors()
             .map(sel ->
-                    formatColumnName(sel.getColumn()) +
-                        formatOperator(sel.getOperator(), sel.getOperand())
+                formatColumnName(sel.getColumn()) +
+                formatOperator(sel.getOperator())
             )
             .collect(joining(" AND ", " WHERE ", ""));
     }
@@ -242,10 +251,9 @@ public final class SqlWriter {
      * Returns a string representation of the specified operator and operand formatted as appropriate in SQL.
      *
      * @param operator  the operator
-     * @param operand   the operand
      * @return          the formatted text
      */
-    private static String formatOperator(Operator operator, Optional<Object> operand) {
+    private static String formatOperator(Operator operator) {
 
         if (operator instanceof StandardUnaryOperator) {
             @SuppressWarnings("unchecked")
@@ -259,15 +267,14 @@ public final class SqlWriter {
         } else if (operator instanceof StandardBinaryOperator) {
             @SuppressWarnings("unchecked")
             final StandardBinaryOperator op = (StandardBinaryOperator) operator;
-            final String value = formatString(escapeValue(operand.get()));
 
             switch (op) {
-                case EQUAL            : return " = " + value;
-                case NOT_EQUAL        : return " <> " + value;
-                case LESS_THAN        : return " < " + value;
-                case LESS_OR_EQUAL    : return " <= " + value;
-                case GREATER_THAN     : return " > " + value;
-                case GREATER_OR_EQUAL : return " >= " + value;
+                case EQUAL            : return " = ?";
+                case NOT_EQUAL        : return " <> ?";
+                case LESS_THAN        : return " < ?";
+                case LESS_OR_EQUAL    : return " <= ?";
+                case GREATER_THAN     : return " > ?";
+                case GREATER_OR_EQUAL : return " >= ?";
                 default : throw new UnsupportedOperationException("Unknown binary operator '" + op.name() + "'.");
             }
         } else if (operator instanceof StandardStringBinaryOperator) {
@@ -275,44 +282,16 @@ public final class SqlWriter {
             final StandardStringBinaryOperator op = (StandardStringBinaryOperator) operator;
 
             switch (op) {
-                case STARTS_WITH            : return " LIKE " + formatString(escapeValue(operand.get()) + "%");
-                case ENDS_WITH              : return " LIKE " + formatString("%" + escapeValue(operand.get()));
-                case CONTAINS               : return " LIKE " + formatString("%" + escapeValue(operand.get()) + "%");
-                case EQUAL_IGNORE_CASE      : return " = " + formatString(escapeValue(operand.get()));
-                case NOT_EQUAL_IGNORE_CASE  : return " <> " + formatString(escapeValue(operand.get()));
+                case STARTS_WITH            : return " LIKE ?%";
+                case ENDS_WITH              : return " LIKE %?";
+                case CONTAINS               : return " LIKE %?%";
+                case EQUAL_IGNORE_CASE      : return " = ?";
+                case NOT_EQUAL_IGNORE_CASE  : return " <> ?";
                 default : throw new UnsupportedOperationException("Unknown string operator '" + op.name() + "'.");
             }
         }
 
         return operator.toString();
-    }
-
-    /**
-     * Formats the specified value as a SQL string.
-     *
-     * @param value  the string
-     * @return       the formatted string
-     */
-    private static String formatString(String value) {
-        return "\"" + value.toString() + "\"";
-    }
-
-    /**
-     * Escapes some characters in the specified value so that it can be used in an SQL query.
-     *
-     * @param value  the value to escape
-     * @return       the escaped value
-     */
-    private static String escapeValue(Object value) {
-        if (value == null) {
-            return "NULL";
-        } else {
-            return value.toString()
-                .replace("%", "\\%")
-                .replace("\"", "\\\"")
-                .replace("'", "\\'")
-                .replace("`", "\\`");
-        }
     }
 
     /**
