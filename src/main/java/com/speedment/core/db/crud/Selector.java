@@ -3,6 +3,8 @@ package com.speedment.core.db.crud;
 import com.speedment.core.config.model.Column;
 import com.speedment.core.field.Operator;
 
+import java.util.Optional;
+
 /**
  * Created by Emil on 2015-08-18.
  */
@@ -24,10 +26,10 @@ public interface Selector {
 
     /**
      * Returns the operand (if any) that this selector compares with. If the operator specified by
-     * {@link #getOperator()} does not require any operands, this will be {@code null}.
+     * {@link #getOperator()} does not require any operands, this will be {@code empty}.
      *
-     * @return  the operand if any and {@code null} otherwise
+     * @return  the operand if any and {@code empty} otherwise
      */
-    Object getOperand();
+    Optional<Object> getOperand();
 
 }

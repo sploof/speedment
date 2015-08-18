@@ -19,16 +19,19 @@ public final class DeleteImpl implements Delete {
 
     private final Table table;
     private final List<Selector> selectors;
+    private final long limit;
 
     /**
      * DeleteImpl should be constructed using the appropriate {@link Builder} class.
      *
      * @param table      the table to delete the entity in
      * @param selectors  the selectors used to determine which entities to delete
+     * @param limit      the maximum number of entities to affect
      */
-    private DeleteImpl(Table table, List<Selector> selectors) {
+    private DeleteImpl(Table table, List<Selector> selectors, long limit) {
         this.table     = table;
         this.selectors = selectors;
+        this.limit     = limit;
     }
 
     /**
@@ -48,12 +51,21 @@ public final class DeleteImpl implements Delete {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getLimit() {
+        return limit;
+    }
+
+    /**
      * Builder class for {@link DeleteImpl}.
      */
     public static class Builder {
 
         private final Table table;
         private final List<Selector> selectors;
+        private long limit;
 
         /**
          * Constructs a builder for the specified {@link Table}.
@@ -63,6 +75,7 @@ public final class DeleteImpl implements Delete {
         public Builder(Table table) {
             this.table     = requireNonNull(table);
             this.selectors = new ArrayList<>();
+            this.limit     = Long.MAX_VALUE;
         }
 
         /**
@@ -77,12 +90,23 @@ public final class DeleteImpl implements Delete {
         }
 
         /**
+         * Limits the maximum number of entities that the operation may affect.
+         *
+         * @param limit  the new limit
+         * @return       a reference to this builder
+         */
+        public Builder limit(long limit) {
+            this.limit = limit;
+            return this;
+        }
+
+        /**
          * Builds the new {@link DeleteImpl} instance.
          *
          * @return  the new instance
          */
         public DeleteImpl build() {
-            return new DeleteImpl(table, selectors);
+            return new DeleteImpl(table, selectors, limit);
         }
     }
 }

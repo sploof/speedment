@@ -23,6 +23,7 @@ public final class UpdateImpl implements Update {
     private final Table table;
     private final List<Selector> selectors;
     private final Map<Column, Object> values;
+    private final long limit;
 
     /**
      * UpdateImpl should be constructed using the appropriate {@link Builder} class.
@@ -30,11 +31,13 @@ public final class UpdateImpl implements Update {
      * @param table      the table of the entity to update
      * @param selectors  the selectors used to determine which entities to update
      * @param values     the new values to use
+     * @param limit      the maximum number of entities to update
      */
-    private UpdateImpl(Table table, List<Selector> selectors, Map<Column, Object> values) {
+    private UpdateImpl(Table table, List<Selector> selectors, Map<Column, Object> values, long limit) {
         this.table     = table;
         this.selectors = selectors;
         this.values    = values;
+        this.limit     = limit;
     }
 
     /**
@@ -62,6 +65,14 @@ public final class UpdateImpl implements Update {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getLimit() {
+        return limit;
+    }
+
+    /**
      * Builder class for {@link UpdateImpl}.
      */
     public static class Builder {
@@ -69,6 +80,7 @@ public final class UpdateImpl implements Update {
         private final Table table;
         private final List<Selector> selectors;
         private final Map<Column, Object> values;
+        private long limit;
 
         /**
          * Constructs a builder for the specified {@link Table}.
@@ -79,6 +91,7 @@ public final class UpdateImpl implements Update {
             this.table     = requireNonNull(table);
             this.selectors = new ArrayList<>();
             this.values    = new ConcurrentHashMap<>();
+            this.limit     = Long.MAX_VALUE;
         }
 
         /**
@@ -109,12 +122,23 @@ public final class UpdateImpl implements Update {
         }
 
         /**
+         * Limits the maximum number of entities that the operation may affect.
+         *
+         * @param limit  the new limit
+         * @return       a reference to this builder
+         */
+        public Builder limit(long limit) {
+            this.limit = limit;
+            return this;
+        }
+
+        /**
          * Builds the new {@link UpdateImpl} instance.
          *
          * @return  the new instance
          */
         public UpdateImpl build() {
-            return new UpdateImpl(table, selectors, values);
+            return new UpdateImpl(table, selectors, values, limit);
         }
     }
 }

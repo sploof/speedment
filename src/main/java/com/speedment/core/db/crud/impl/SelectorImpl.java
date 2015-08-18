@@ -6,6 +6,8 @@ import com.speedment.core.field.BinaryPredicateBuilder;
 import com.speedment.core.field.Operator;
 import com.speedment.core.field.UnaryPredicateBuilder;
 
+import java.util.Optional;
+
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -52,8 +54,8 @@ public final class SelectorImpl implements Selector {
      * {@inheritDoc}
      */
     @Override
-    public Object getOperand() {
-        return operand;
+    public Optional<Object> getOperand() {
+        return Optional.ofNullable(operand);
     }
 
     /**

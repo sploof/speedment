@@ -14,4 +14,9 @@ public interface Selective {
      */
     Stream<Selector> getSelectors();
 
+    /**
+     * Returns the maximum number of entities that this operations may affect.
+     * @return  the limit
+     */
+    long getLimit();
 }
