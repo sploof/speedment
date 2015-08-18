@@ -2,11 +2,15 @@ package com.speedment.core.db.crud;
 
 import com.speedment.core.config.model.Column;
 import com.speedment.core.config.model.Table;
+import com.speedment.core.exception.SpeedmentException;
 import com.speedment.core.field.Operator;
 import com.speedment.core.field.StandardBinaryOperator;
 import com.speedment.core.field.StandardStringBinaryOperator;
 import com.speedment.core.field.StandardUnaryOperator;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,6 +26,45 @@ import static java.util.stream.Collectors.toList;
  * @author Emil
  */
 public final class SqlWriter {
+
+    /**
+     * Prepares an SQL statement for the specified CRUD operation.
+     *
+     * @param con        the connection
+     * @param operation  the CRUD operation
+     * @return           the prepared statement
+     */
+    public static PreparedStatement prepare(Connection con, Operation operation) {
+        try {
+            return con.prepareStatement(toSql(operation));
+        } catch (SQLException ex) {
+            throw new SpeedmentException("Failed to parse SQL string into a PreparedStatement.", ex);
+        }
+    }
+
+    /**
+     * Converts the specified CRUD operation to an SQL string. This is a shortcut for the four methods
+     * <ul>
+     *     <li>{@link #create(Create)}
+     *     <li>{@link #read(Read)}
+     *     <li>{@link #update(Update)}
+     *     <li>{@link #delete(Delete)}
+     * </ul>
+     *
+     * @param operation  the operation to convert into SQL
+     * @return           the SQL string
+     */
+    public static String toSql(Operation operation) {
+        switch (operation.getType()) {
+            case CREATE : return create((Create) operation);
+            case READ   : return read((Read) operation);
+            case UPDATE : return update((Update) operation);
+            case DELETE : return delete((Delete) operation);
+            default : throw new UnsupportedOperationException(
+                "Unknown CRUD operation type '" + operation.getType().name() + "'."
+            );
+        }
+    }
 
     /**
      * Creates an SQL query that represents the specified CRUD command.
