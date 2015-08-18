@@ -30,7 +30,7 @@ import java.util.function.Function;
 @FunctionalInterface
 public interface SqlFunction<T, R> {
 
-    abstract R apply(T t) throws SQLException;
+    R apply(T t) throws SQLException;
 
     static <T, R> SqlFunction<T, R> wrap(Function<T, R> inner) {
         return inner::apply;
@@ -59,5 +59,4 @@ public interface SqlFunction<T, R> {
     static <T> SqlFunction<T, T> identity() {
         return (T t) -> t;
     }
-
 }
