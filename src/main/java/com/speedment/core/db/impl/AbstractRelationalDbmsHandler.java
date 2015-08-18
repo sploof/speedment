@@ -16,51 +16,30 @@
  */
 package com.speedment.core.db.impl;
 
-import com.speedment.core.config.model.Column;
-import com.speedment.core.config.model.Dbms;
-import com.speedment.core.config.model.ForeignKey;
-import com.speedment.core.config.model.ForeignKeyColumn;
-import com.speedment.core.config.model.Index;
-import com.speedment.core.config.model.IndexColumn;
-import com.speedment.core.config.model.PrimaryKeyColumn;
-import com.speedment.core.config.model.Schema;
-import com.speedment.core.config.model.Table;
+import com.speedment.core.config.model.*;
 import com.speedment.core.config.model.parameters.DbmsType;
 import com.speedment.core.config.model.parameters.OrderType;
-import com.speedment.core.manager.sql.SqlStatement;
-import com.speedment.core.manager.sql.SqlUpdateStatement;
-import com.speedment.core.db.AsynchronousQueryResult;
 import com.speedment.core.db.DbmsHandler;
+import com.speedment.core.db.crud.*;
 import com.speedment.core.exception.SpeedmentException;
 import com.speedment.core.platform.Platform;
 import com.speedment.core.platform.component.SqlTypeMapperComponent;
 import com.speedment.logging.Logger;
 import com.speedment.logging.LoggerManager;
 import com.speedment.util.java.sql.TypeInfo;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
+
+import java.sql.*;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
-import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  *
  * @author pemi
+ * @author Emil Forslund
  */
 public abstract class AbstractRelationalDbmsHandler implements DbmsHandler {
 
@@ -77,7 +56,7 @@ public abstract class AbstractRelationalDbmsHandler implements DbmsHandler {
 
     public AbstractRelationalDbmsHandler(Dbms dbms) {
         this.dbms = dbms;
-        typeMapping = new ConcurrentHashMap<>();
+        this.typeMapping = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -85,51 +64,40 @@ public abstract class AbstractRelationalDbmsHandler implements DbmsHandler {
         return dbms;
     }
 
-    // Todo: Use DataSoruce instead: http://docs.oracle.com/javase/tutorial/jdbc/basics/sqldatasources.html
-    public Connection getConnection() {
-        Connection conn;
-        final Properties connectionProps = new Properties();
-        dbms.getUsername().ifPresent(u -> connectionProps.put(USER, u));
-        dbms.getPassword().ifPresent(p -> connectionProps.put(PASSWORD, p));
-        final String url = getUrl();
-        try {
-            conn = DriverManager.getConnection(url, connectionProps);
-        } catch (SQLException sqle) {
-            final Properties pwProtectedProperties = new Properties();
-            connectionProps.forEach((k, v) -> pwProtectedProperties.put(k, v));
-            pwProtectedProperties.put(PASSWORD, PASSWORD_PROTECTED);
-            final String msg = "Unable to get connection for " + dbms + " using url \"" + url + "\" and connectionProperties " + pwProtectedProperties;
-            LOGGER.error(msg, sqle);
-            throw new SpeedmentException(msg, sqle);
-        }
-        return conn;
+    @Override
+    public <T> Stream<T> executeCreate(Create operation, Function<Result, T> mapper) {
+        return executeQuery(
+            SqlWriter.create(operation),
+            SqlWriter.values(operation),
+            rs -> mapper.apply(new SqlResult(rs))
+        );
     }
 
-    public String getUrl() {
-        final DbmsType dbmsType = getDbms().getType();
-        final StringBuilder result = new StringBuilder();
-        result.append("jdbc:");
-        result.append(dbmsType.getJdbcConnectorName());
-        result.append("://");
-        getDbms().getIpAddress().ifPresent(ip -> result.append(ip));
-        getDbms().getPort().ifPresent(p -> result.append(":").append(p));
-        result.append("/");
-
-        dbmsType.getDefaultConnectorParameters().ifPresent(d -> result.append("?").append(d));
-
-        return result.toString();
+    @Override
+    public <T> Stream<T> executeRead(Read operation, Function<Result, T> mapper) {
+        return executeQuery(
+            SqlWriter.read(operation),
+            Collections.emptyList(),
+            rs -> mapper.apply(new SqlResult(rs))
+        );
     }
 
-    protected Map<String, Class<?>> readTypeMapFromDB(Connection connection) throws SQLException {
-        final Map<String, Class<?>> result = new ConcurrentHashMap<>();
-        try (final ResultSet rs = connection.getMetaData().getTypeInfo()) {
-            while (rs.next()) {
-                final TypeInfo typeInfo = TypeInfo.from(rs);
-                final Class<?> mappedClass = Platform.get().get(SqlTypeMapperComponent.class).apply(dbms, typeInfo);
-                result.put(typeInfo.getSqlTypeName(), mappedClass);
-            }
-        }
-        return result;
+    @Override
+    public <T> Stream<T> executeUpdate(Update operation, Function<Result, T> mapper) {
+        return executeQuery(
+            SqlWriter.update(operation),
+            SqlWriter.values(operation),
+            rs -> mapper.apply(new SqlResult(rs))
+        );
+    }
+
+    @Override
+    public <T> Stream<T> executeDelete(Delete operation, Function<Result, T> mapper) {
+        return executeQuery(
+            SqlWriter.delete(operation),
+            Collections.emptyList(),
+            rs -> mapper.apply(new SqlResult(rs))
+        );
     }
 
     @Override
@@ -167,6 +135,53 @@ public abstract class AbstractRelationalDbmsHandler implements DbmsHandler {
             LOGGER.error("Unable to read from " + dbms.toString(), sqle);
             return Stream.empty();
         }
+    }
+
+    // Todo: Use DataSoruce instead: http://docs.oracle.com/javase/tutorial/jdbc/basics/sqldatasources.html
+    public Connection getConnection() {
+        Connection conn;
+        final Properties connectionProps = new Properties();
+        dbms.getUsername().ifPresent(u -> connectionProps.put(USER, u));
+        dbms.getPassword().ifPresent(p -> connectionProps.put(PASSWORD, p));
+        final String url = getUrl();
+        try {
+            conn = DriverManager.getConnection(url, connectionProps);
+        } catch (SQLException sqle) {
+            final Properties pwProtectedProperties = new Properties();
+            connectionProps.forEach((k, v) -> pwProtectedProperties.put(k, v));
+            pwProtectedProperties.put(PASSWORD, PASSWORD_PROTECTED);
+            final String msg = "Unable to get connection for " + dbms + " using url \"" + url + "\" and connectionProperties " + pwProtectedProperties;
+            LOGGER.error(msg, sqle);
+            throw new SpeedmentException(msg, sqle);
+        }
+        return conn;
+    }
+
+    public String getUrl() {
+        final DbmsType dbmsType = getDbms().getType();
+        final StringBuilder result = new StringBuilder();
+        result.append("jdbc:");
+        result.append(dbmsType.getJdbcConnectorName());
+        result.append("://");
+        getDbms().getIpAddress().ifPresent(ip -> result.append(ip));
+        getDbms().getPort().ifPresent(p -> result.append(":").append(p));
+        result.append("/");
+
+        dbmsType.getDefaultConnectorParameters().ifPresent(d -> result.append("?").append(d));
+
+        return result.toString();
+    }
+
+    protected Map<String, Class<?>> readTypeMapFromDB(final Connection connection) throws SQLException {
+        final Map<String, Class<?>> result = new ConcurrentHashMap<>();
+        try (final ResultSet rs = connection.getMetaData().getTypeInfo()) {
+            while (rs.next()) {
+                final TypeInfo typeInfo = TypeInfo.from(rs);
+                final Class<?> mappedClass = Platform.get().get(SqlTypeMapperComponent.class).apply(dbms, typeInfo);
+                result.put(typeInfo.getSqlTypeName(), mappedClass);
+            }
+        }
+        return result;
     }
 
     protected Stream<Schema> schemas(final Connection connection) {
@@ -212,7 +227,7 @@ public abstract class AbstractRelationalDbmsHandler implements DbmsHandler {
         return schemas.stream();
     }
 
-    protected Stream<Table> tables(final Connection connection, Schema schema) {
+    protected Stream<Table> tables(final Connection connection, final Schema schema) {
         final List<Table> tables = new ArrayList<>();
         LOGGER.info("Parsing " + schema.toString());
         try {
@@ -246,7 +261,7 @@ public abstract class AbstractRelationalDbmsHandler implements DbmsHandler {
         return tables.stream();
     }
 
-    protected Stream<Column> columns(final Connection connection, Schema schema, Table table) {
+    protected Stream<Column> columns(final Connection connection, final Schema schema, final Table table) {
         final SqlSupplier<ResultSet> supplier = ()
             -> connection.getMetaData().getColumns(jdbcCatalogLookupName(schema), jdbcSchemaLookupName(schema), table.getName(), null);
 
@@ -276,7 +291,7 @@ public abstract class AbstractRelationalDbmsHandler implements DbmsHandler {
         return tableChilds(supplier, mapper);
     }
 
-    protected Stream<PrimaryKeyColumn> primaryKeyColumns(final Connection connection, Schema schema, Table table) {
+    protected Stream<PrimaryKeyColumn> primaryKeyColumns(final Connection connection, final Schema schema, final Table table) {
         final SqlSupplier<ResultSet> supplier = ()
             -> connection.getMetaData().getPrimaryKeys(jdbcCatalogLookupName(schema), jdbcSchemaLookupName(schema), table.getName());
 
@@ -289,7 +304,7 @@ public abstract class AbstractRelationalDbmsHandler implements DbmsHandler {
         return tableChilds(supplier, mapper);
     }
 
-    protected Stream<Index> indexes(final Connection connection, Schema schema, Table table) {
+    protected Stream<Index> indexes(final Connection connection, final Schema schema, final Table table) {
         final Map<String, Index> indexes = new HashMap<>(); // Use map instead of Set because Index equality is difficult...
         final SqlSupplier<ResultSet> supplier = ()
             -> connection.getMetaData().getIndexInfo(jdbcCatalogLookupName(schema), jdbcSchemaLookupName(schema), table.getName(), false, false);
@@ -324,7 +339,7 @@ public abstract class AbstractRelationalDbmsHandler implements DbmsHandler {
         return tableChilds(supplier, mapper);
     }
 
-    protected Stream<ForeignKey> foreignKeys(final Connection connection, Schema schema, Table table) {
+    protected Stream<ForeignKey> foreignKeys(final Connection connection, final Schema schema, final Table table) {
         final Map<String, ForeignKey> foreignKeys = new HashMap<>(); // Use map instead of Set because ForeignKey equality is difficult...
         final SqlSupplier<ResultSet> supplier = () -> {
             return connection.getMetaData().getImportedKeys(jdbcCatalogLookupName(schema), jdbcSchemaLookupName(schema), table.getName());
@@ -350,7 +365,7 @@ public abstract class AbstractRelationalDbmsHandler implements DbmsHandler {
         return tableChilds(supplier, mapper);
     }
 
-    protected <T> Stream<T> tableChilds(SqlSupplier<ResultSet> resultSetSupplier, SqlFunction<ResultSet, T> resultSetMapper) {
+    protected <T> Stream<T> tableChilds(final SqlSupplier<ResultSet> resultSetSupplier, final SqlFunction<ResultSet, T> resultSetMapper) {
         final List<T> childs = new ArrayList<>();
         try {
             try (final ResultSet rsColumn = resultSetSupplier.get()) {
@@ -382,16 +397,15 @@ public abstract class AbstractRelationalDbmsHandler implements DbmsHandler {
         return childs.stream();
     }
 
-    protected String jdbcSchemaLookupName(Schema schema) {
+    protected String jdbcSchemaLookupName(final Schema schema) {
         return null;
     }
 
-    protected String jdbcCatalogLookupName(Schema schema) {
+    protected String jdbcCatalogLookupName(final Schema schema) {
         return schema.getSchemaName().orElse(null);
     }
 
-    @Override
-    public <T> Stream<T> executeQuery(final String sql, final List<?> values, final SqlFunction<ResultSet, T> rsMapper) {
+    protected <T> Stream<T> executeQuery(final String sql, final List<?> values, final SqlFunction<ResultSet, T> rsMapper) {
         try (final Connection connection = getConnection(); final PreparedStatement ps = connection.prepareStatement(sql)) {
             int i = 1;
             for (final Object o : values) {
@@ -410,124 +424,4 @@ public abstract class AbstractRelationalDbmsHandler implements DbmsHandler {
             throw new SpeedmentException(sqle);
         }
     }
-
-    @Override
-    public <T> AsynchronousQueryResult<T> executeQueryAsync(
-        final String sql,
-        final List<?> values,
-        final Function<ResultSet, T> rsMapper
-    ) {
-        return new AsynchronousQueryResultImpl<>(
-            Objects.requireNonNull(sql),
-            Objects.requireNonNull(values),
-            Objects.requireNonNull(rsMapper),
-            () -> getConnection());
-    }
-
-    @Override
-    public void executeUpdate(
-        final String sql,
-        final List<?> values,
-        final Consumer<List<Long>> generatedKeysConsumer
-    ) throws SQLException {
-        final List<SqlUpdateStatement> sqlStatementList = new ArrayList<>();
-        final SqlUpdateStatement sqlUpdateStatement = new SqlUpdateStatement(sql, values, generatedKeysConsumer);
-        sqlStatementList.add(sqlUpdateStatement);
-        executeUpdate(sqlStatementList);
-    }
-
-    private void executeUpdate(final List<SqlUpdateStatement> sqlStatementList) throws SQLException {
-
-        int retryCount = 5;
-        boolean transactionCompleted = false;
-
-        do {
-            SqlStatement lastSqlStatement = null;
-            Connection conn = null;
-            try {
-                conn = getConnection();
-                conn.setAutoCommit(false);
-                for (final SqlUpdateStatement sqlStatement : sqlStatementList) {
-                    try (final PreparedStatement ps = conn.prepareStatement(sqlStatement.getSql(), Statement.RETURN_GENERATED_KEYS)) {
-
-                        int i = 1;
-                        for (Object o : sqlStatement.getValues()) {
-                            ps.setObject(i++, o);
-                        }
-
-                        ps.executeUpdate();
-
-                        try (final ResultSet generatedKeys = ps.getGeneratedKeys()) {
-                            while (generatedKeys.next()) {
-                                final Object genKey = generatedKeys.getObject(1);
-                                if (!"oracle.sql.ROWID".equals(genKey.getClass()
-                                    .getName())) {
-                                    sqlStatement.addGeneratedKey(generatedKeys.getLong(1));
-                                } else {
-                                    // Handle ROWID, make result = map<,String>
-                                    // instead...
-                                }
-                            }
-                        }
-
-                    }
-                }
-                conn.commit();
-                conn.close();
-                conn = null;
-                transactionCompleted = true;
-            } catch (SQLException sqlEx) {
-                LOGGER.error("SqlStatementList: " + sqlStatementList);
-                LOGGER.error("SQL: " + lastSqlStatement);
-                LOGGER.error(sqlEx.getMessage(), sqlEx);
-                String sqlState = sqlEx.getSQLState();
-
-                if ("08S01".equals(sqlState) || "40001".equals(sqlState)) {
-                    retryCount--;
-                } else {
-                    retryCount = 0;
-                    throw sqlEx; // Finally will be executed...
-                }
-            } finally {
-
-                if (!transactionCompleted) {
-                    try {
-                        // If we got here, and conn is not null, the
-                        // transaction should be rolled back, as not
-                        // all work has been done
-                        try {
-                            conn.rollback();
-                        } finally {
-                            conn.close();
-                        }
-                    } catch (SQLException sqlEx) {
-                        //
-                        // If we got an exception here, something
-                        // pretty serious is going on, so we better
-                        // pass it up the stack, rather than just
-                        // logging it. . .
-                        LOGGER.error("Rollback error! connection:" + sqlEx.getMessage(), sqlEx);
-                        throw sqlEx;
-                    }
-                }
-            }
-        } while (!transactionCompleted && (retryCount > 0));
-
-        if (transactionCompleted) {
-            sqlStatementList.forEach(SqlUpdateStatement::acceptGeneratedKeys);
-        }
-    }
-
-    <T> Supplier<T> wrapSupplierInSpeedmentException(final SqlSupplier<T> innerSupplier) {
-
-        return () -> {
-            try {
-                return innerSupplier.get();
-            } catch (SQLException sqle) {
-                throw new SpeedmentException(sqle);
-            }
-        };
-
-    }
-
 }

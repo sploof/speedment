@@ -1,7 +1,8 @@
-package com.speedment.core.db.crud;
+package com.speedment.core.db.impl;
 
 import com.speedment.core.config.model.Column;
 import com.speedment.core.config.model.Table;
+import com.speedment.core.db.crud.*;
 import com.speedment.core.exception.SpeedmentException;
 import com.speedment.core.field.Operator;
 import com.speedment.core.field.StandardBinaryOperator;

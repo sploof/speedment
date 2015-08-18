@@ -18,12 +18,10 @@ package com.speedment.core.db;
 
 import com.speedment.core.config.model.Dbms;
 import com.speedment.core.config.model.Schema;
-import com.speedment.core.db.impl.SqlFunction;
+import com.speedment.core.db.crud.*;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -72,7 +70,12 @@ public interface DbmsHandler {
      * @return  a stream of populated {@link Schema Schemas} that are available 
      *          in this database
      */
-    public Stream<Schema> schemas();
+    Stream<Schema> schemas();
+
+    <T> Stream<T> executeCreate(final Create operation, final Function<Result, T> mapper);
+    <T> Stream<T> executeRead(final Read operation, final Function<Result, T> mapper);
+    <T> Stream<T> executeUpdate(final Update operation, final Function<Result, T> mapper);
+    <T> Stream<T> executeDelete(final Delete operation, final Function<Result, T> mapper);
 
     /**
      * Eagerly executes a SQL query and subsequently maps each row in the
@@ -87,12 +90,12 @@ public interface DbmsHandler {
      * @param rsMapper  the mapper to use when iterating over the ResultSet
      * @return          a stream of the mapped objects
      */
-    default <T> Stream<T> executeQuery(
-        final String sql, 
-        final SqlFunction<ResultSet, T> rsMapper) {
-        
-        return executeQuery(sql, Collections.emptyList(), rsMapper);
-    }
+//    default <T> Stream<T> executeQuery(
+//        final String sql,
+//        final SqlFunction<ResultSet, T> rsMapper) {
+//
+//        return executeQuery(sql, Collections.emptyList(), rsMapper);
+//    }
 
     /**
      * Eagerly executes a SQL query and subsequently maps each row in the
@@ -109,10 +112,10 @@ public interface DbmsHandler {
      *                  {@link ResultSet}
      * @return          a stream of the mapped objects
      */
-    public <T> Stream<T> executeQuery(
-        final String sql, 
-        final List<?> values, 
-        final SqlFunction<ResultSet, T> rsMapper);
+//    <T> Stream<T> executeQuery(
+//        final String sql,
+//        final List<?> values,
+//        final SqlFunction<ResultSet, T> rsMapper);
 
     /**
      * Lazily Executes a SQL query and subsequently maps each row in the
@@ -129,10 +132,10 @@ public interface DbmsHandler {
      *                  {@link ResultSet}
      * @return          a stream of the mapped objects
      */
-    public <T> AsynchronousQueryResult<T> executeQueryAsync(
-        final String sql, 
-        final List<?> values, 
-        final Function<ResultSet, T> rsMapper);
+//    <T> AsynchronousQueryResult<T> executeQueryAsync(
+//        final String sql,
+//        final List<?> values,
+//        final Function<ResultSet, T> rsMapper);
 
     /**
      * Executes a SQL update command. Generated key(s) following an insert
@@ -142,13 +145,13 @@ public interface DbmsHandler {
      * @param generatedKeyConsumer  the non-null key Consumer
      * @throws SQLException         if an error occurs
      */
-    default void executeUpdate(
-        final String sql, 
-        final Consumer<List<Long>> generatedKeyConsumer
-    ) throws SQLException {
-        
-        executeUpdate(sql, Collections.emptyList(), generatedKeyConsumer);
-    }
+//    default void executeUpdate(
+//        final String sql,
+//        final Consumer<List<Long>> generatedKeyConsumer
+//    ) throws SQLException {
+//
+//        executeUpdate(sql, Collections.emptyList(), generatedKeyConsumer);
+//    }
 
     /**
      * Executes a SQL update command. Generated key(s) following an insert
@@ -160,9 +163,9 @@ public interface DbmsHandler {
      *                              parameters in the SQL command
      * @throws SQLException         if an error occurs
      */
-    public void executeUpdate(
-        final String sql, 
-        final List<?> values, 
-        final Consumer<List<Long>> generatedKeyConsumer
-    ) throws SQLException;
+//    void executeUpdate(
+//        final String sql,
+//        final List<?> values,
+//        final Consumer<List<Long>> generatedKeyConsumer
+//    ) throws SQLException;
 }
