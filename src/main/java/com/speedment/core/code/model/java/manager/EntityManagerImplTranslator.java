@@ -27,12 +27,13 @@ import com.speedment.core.platform.Platform;
 import com.speedment.core.platform.component.JavaTypeMapperComponent;
 import com.speedment.core.runtime.typemapping.JavaTypeMapping;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.stream.Stream;
 
 import static com.speedment.codegen.lang.models.constants.DefaultAnnotationUsage.OVERRIDE;
 import static com.speedment.codegen.util.Formatting.block;
+import com.speedment.core.db.crud.Result;
+import static com.speedment.util.java.JavaLanguage.javaStaticFieldName;
 
 /**
  *
@@ -70,12 +71,13 @@ public class EntityManagerImplTranslator extends BaseEntityAndManagerTranslator<
 
     private Method defaultReadEntity(File file) {
 
-        file.add(Import.of(Type.of(SQLException.class)));
+        //file.add(Import.of(Type.of(SQLException.class)));
         file.add(Import.of(Type.of(SpeedmentException.class)));
+        file.add(Import.of(FIELD.getType()));
 
         final Method method = Method.of("defaultReadEntity", ENTITY.getType())
             .protected_()
-            .add(Field.of("resultSet", Type.of(ResultSet.class)))
+            .add(Field.of("result", Type.of(Result.class)))
             .add("final " + BUILDER.getName() + " builder = builder();");
 
         final JavaTypeMapperComponent mapperComponent = Platform.get().get(JavaTypeMapperComponent.class);
@@ -91,22 +93,24 @@ public class EntityManagerImplTranslator extends BaseEntityAndManagerTranslator<
             
             final String getterName = "get" + mapping.getResultSetMethodName(dbms());
 
-            if (Stream.of(ResultSet.class.getMethods())
+            if (Stream.of(Result.class.getMethods())
                 .map(java.lang.reflect.Method::getName)
                 .anyMatch(getterName::equals)
             &&  !c.isNullable()) {
                 sb
-                    .append("resultSet.")
+                    .append("result.")
                     .append("get")
                     .append(mapping.getResultSetMethodName(dbms()))
-                    .append("(\"").append(c.getName()).append("\")");
+                    .append("(")
+                    .append(FIELD.getName()).append(".").append(javaStaticFieldName(c.getName())).append(".getColumn()");
             } else {
                 sb
                     .append("get")
                     .append(mapping.getResultSetMethodName(dbms()))
-                    .append("(resultSet, ")
-                    .append("\"").append(c.getName()).append("\")");
+                    .append("(result, ")
+                    .append(FIELD.getName()).append(".").append(javaStaticFieldName(c.getName())).append(".getColumn()");
             }
+
             sb.append(");");
             streamBuilder.add(sb.toString());
 
