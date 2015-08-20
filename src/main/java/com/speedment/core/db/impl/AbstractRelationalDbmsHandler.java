@@ -406,6 +406,8 @@ public abstract class AbstractRelationalDbmsHandler implements DbmsHandler {
     }
 
     protected <T> Stream<T> executeQuery(final String sql, final List<?> values, final SqlFunction<ResultSet, T> rsMapper) {
+        LOGGER.debug("Executing: '" + sql + "'");
+
         try (final Connection connection = getConnection(); final PreparedStatement ps = connection.prepareStatement(sql)) {
             int i = 1;
             for (final Object o : values) {

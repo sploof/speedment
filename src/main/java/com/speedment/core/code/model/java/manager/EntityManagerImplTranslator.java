@@ -16,28 +16,23 @@
  */
 package com.speedment.core.code.model.java.manager;
 
-import static com.speedment.codegen.util.Formatting.block;
-import com.speedment.core.code.model.java.BaseEntityAndManagerTranslator;
 import com.speedment.codegen.base.Generator;
-import com.speedment.codegen.lang.models.Field;
-import com.speedment.codegen.lang.models.File;
-import com.speedment.codegen.lang.models.Import;
 import com.speedment.codegen.lang.models.Class;
-import com.speedment.codegen.lang.models.Constructor;
-import com.speedment.codegen.lang.models.Generic;
-import com.speedment.codegen.lang.models.Method;
-import com.speedment.codegen.lang.models.Type;
-import static com.speedment.codegen.lang.models.constants.DefaultAnnotationUsage.OVERRIDE;
+import com.speedment.codegen.lang.models.*;
+import com.speedment.core.code.model.java.BaseEntityAndManagerTranslator;
 import com.speedment.core.config.model.Table;
-import com.speedment.core.manager.sql.AbstractSqlManager;
 import com.speedment.core.exception.SpeedmentException;
+import com.speedment.core.manager.sql.AbstractSqlManager;
 import com.speedment.core.platform.Platform;
 import com.speedment.core.platform.component.JavaTypeMapperComponent;
 import com.speedment.core.runtime.typemapping.JavaTypeMapping;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.stream.Stream;
+
+import static com.speedment.codegen.lang.models.constants.DefaultAnnotationUsage.OVERRIDE;
+import static com.speedment.codegen.util.Formatting.block;
 
 /**
  *
@@ -59,57 +54,18 @@ public class EntityManagerImplTranslator extends BaseEntityAndManagerTranslator<
                 .add(Generic.of().add(BUILDER.getType()))
             )
             .add(MANAGER.getType())
-            //            .call(i -> file.add(Import.of(Type.of(Platform.class))))
-            //            .call(i -> file.add(Import.of(Type.of(ProjectComponent.class))))
-            //            .add(Method.of("getTable", Type.of(Table.class)).public_().add(OVERRIDE)
-            //                .add("return " + Platform.class.getSimpleName() + 
-            //                    ".get().get(" + ProjectComponent.class.getSimpleName() + 
-            //                    ".class).getProject().findTableByName(getTableName());"))
 
             .call(i -> file.add(Import.of(ENTITY.getImplType())))
             .add(Constructor.of()
                 .public_()
-                .add("setSqlEntityMapper(this::defaultReadEntity);"))
+                .add("setEntityMapper(this::defaultReadEntity);"))
             .add(Method.of("builder", BUILDER.getType()).public_().add(OVERRIDE)
                 .add("return new " + ENTITY.getImplName() + "();"))
             .add(Method.of("toBuilder", BUILDER.getType()).public_().add(OVERRIDE)
                 .add(Field.of("prototype", ENTITY.getType()))
                 .add("return new " + ENTITY.getImplName() + "(prototype);"))
             .call(i -> file.add(Import.of(Type.of(Stream.class))))
-            //                .add(Method.of("stream", Type.of(Stream.class).add(GENERIC_OF_ENTITY)).public_().add(OVERRIDE)
-            //                        .add("return Stream.empty();")) //TODO MUST BE FIXED!
-
-            //                .add(Method.of("persist", ENTITY.getType()).public_().add(OVERRIDE)
-            //                        .add(Field.of("entity", ENTITY.getType()))
-            //                        .add("return entity;")) //TODO MUST BE FIXED!
-
-            //                .add(Method.of("remove", ENTITY.getType()).public_().add(OVERRIDE)
-            //                        .add(Field.of("entity", ENTITY.getType()))
-            //                        .add("return entity;")) //TODO MUST BE FIXED!
             .add(defaultReadEntity(file));
-    }
-    
-    private static enum Primitive {
-        BYTE("byte"), SHORT("short"), INT("int"), LONG("long"), FLOAT("float"),
-        DOUBLE("double"), BOOLEAN("boolean");
-        
-        private final String javaName;
-        
-        private Primitive(String javaName) {
-            this.javaName = javaName;
-        }
-        
-        public String getJavaName() {
-            return javaName;
-        }
-        
-        public static boolean isPrimitive(String typeName) {
-            return nameStream().anyMatch(typeName::equalsIgnoreCase);
-        }
-        
-        public static Stream<String> nameStream() {
-            return Stream.of(values()).map(Primitive::getJavaName);
-        }
     }
 
     private Method defaultReadEntity(File file) {
