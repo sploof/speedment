@@ -19,7 +19,7 @@ package com.speedment.core.db.crud;
 import java.util.stream.Stream;
 
 /**
- * Created by Emil on 2015-08-18.
+ * @author Emil Forslund
  */
 public interface Selective {
 
@@ -32,6 +32,7 @@ public interface Selective {
 
     /**
      * Returns the maximum number of entities that this operations may affect.
+     * 
      * @return  the limit
      */
     long getLimit();

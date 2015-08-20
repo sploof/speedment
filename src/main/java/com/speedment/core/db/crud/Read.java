@@ -17,7 +17,7 @@
 package com.speedment.core.db.crud;
 
 /**
- * Created by Emil on 2015-08-18.
+ * @author Emil Forslund
  */
 public interface Read extends Operation, Selective {
 

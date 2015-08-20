@@ -22,7 +22,7 @@ import com.speedment.core.field.Operator;
 import java.util.Optional;
 
 /**
- * Created by Emil on 2015-08-18.
+ * @author Emil Forslund
  */
 public interface Selector {
 

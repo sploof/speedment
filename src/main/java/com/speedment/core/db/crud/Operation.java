@@ -19,7 +19,7 @@ package com.speedment.core.db.crud;
 import com.speedment.core.config.model.Table;
 
 /**
- * Created by Emil on 2015-08-18.
+ * @author Emil Forslund
  */
 public interface Operation {
 

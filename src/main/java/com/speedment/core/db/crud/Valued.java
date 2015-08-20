@@ -21,7 +21,7 @@ import com.speedment.core.config.model.Column;
 import java.util.Map;
 
 /**
- * Created by Emil on 2015-08-18.
+ * @author Emil Forslund
  */
 public interface Valued {
 
