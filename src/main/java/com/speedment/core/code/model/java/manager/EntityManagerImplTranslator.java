@@ -27,13 +27,12 @@ import com.speedment.core.platform.Platform;
 import com.speedment.core.platform.component.JavaTypeMapperComponent;
 import com.speedment.core.runtime.typemapping.JavaTypeMapping;
 
-import java.sql.SQLException;
 import java.util.stream.Stream;
 
 import static com.speedment.codegen.lang.models.constants.DefaultAnnotationUsage.OVERRIDE;
-import static com.speedment.codegen.util.Formatting.block;
 import com.speedment.core.db.crud.Result;
 import static com.speedment.util.java.JavaLanguage.javaStaticFieldName;
+import static java.util.stream.Collectors.joining;
 
 /**
  *
@@ -65,20 +64,17 @@ public class EntityManagerImplTranslator extends BaseEntityAndManagerTranslator<
             .add(Method.of("toBuilder", BUILDER.getType()).public_().add(OVERRIDE)
                 .add(Field.of("prototype", ENTITY.getType()))
                 .add("return new " + ENTITY.getImplName() + "(prototype);"))
-            .call(i -> file.add(Import.of(Type.of(Stream.class))))
             .add(defaultReadEntity(file));
     }
 
     private Method defaultReadEntity(File file) {
 
-        //file.add(Import.of(Type.of(SQLException.class)));
-        file.add(Import.of(Type.of(SpeedmentException.class)));
         file.add(Import.of(FIELD.getType()));
 
         final Method method = Method.of("defaultReadEntity", ENTITY.getType())
             .protected_()
             .add(Field.of("result", Type.of(Result.class)))
-            .add("final " + BUILDER.getName() + " builder = builder();");
+            .add("final " + BUILDER.getName() + " builder = builder();\n");
 
         final JavaTypeMapperComponent mapperComponent = Platform.get().get(JavaTypeMapperComponent.class);
         final Stream.Builder<String> streamBuilder = Stream.builder();
@@ -89,39 +85,23 @@ public class EntityManagerImplTranslator extends BaseEntityAndManagerTranslator<
             final StringBuilder sb = new StringBuilder()
                 .append("builder.set")
                 .append(typeName(c))
-                .append("(");
-            
-            final String getterName = "get" + mapping.getResultSetMethodName(dbms());
+                .append("(")
+                .append("result.")
+                .append("get")
+                .append(mapping.getResultSetMethodName(dbms()))
+                .append("(")
+                .append(FIELD.getName())
+                .append(".")
+                .append(javaStaticFieldName(c.getName()))
+                .append(".getColumn())")
+                .append(");");
 
-            if (Stream.of(Result.class.getMethods())
-                .map(java.lang.reflect.Method::getName)
-                .anyMatch(getterName::equals)
-            &&  !c.isNullable()) {
-                sb
-                    .append("result.")
-                    .append("get")
-                    .append(mapping.getResultSetMethodName(dbms()))
-                    .append("(")
-                    .append(FIELD.getName()).append(".").append(javaStaticFieldName(c.getName())).append(".getColumn()");
-            } else {
-                sb
-                    .append("get")
-                    .append(mapping.getResultSetMethodName(dbms()))
-                    .append("(result, ")
-                    .append(FIELD.getName()).append(".").append(javaStaticFieldName(c.getName())).append(".getColumn()");
-            }
-
-            sb.append(");");
             streamBuilder.add(sb.toString());
 
         });
 
-        method
-            .add("try " + block(streamBuilder.build()))
-            .add("catch (" + SQLException.class.getSimpleName() + " sqle) " + block(
-                    "throw new " + SpeedmentException.class.getSimpleName() + "(sqle);"
-                ))
-            .add("return builder;");
+        streamBuilder.build().forEachOrdered(method::add);
+        method.add("\nreturn builder;");
 
         return method;
     }
@@ -145,4 +125,9 @@ public class EntityManagerImplTranslator extends BaseEntityAndManagerTranslator<
         return MANAGER.getImplType();
     }
 
+    private boolean hasResultMethod(String methodName) {
+        return Stream.of(Result.class.getMethods())
+            .map(java.lang.reflect.Method::getName)
+            .anyMatch(methodName::equals);
+    }
 }
