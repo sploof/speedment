@@ -1,7 +1,6 @@
 package com.speedment.internal.core.manager.sql;
 
 import com.speedment.Speedment;
-import com.speedment.config.Column;
 import com.speedment.config.Dbms;
 import com.speedment.config.parameters.DbmsType;
 import com.speedment.db.crud.Create;
@@ -19,8 +18,6 @@ import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import com.speedment.db.crud.CrudOperation;

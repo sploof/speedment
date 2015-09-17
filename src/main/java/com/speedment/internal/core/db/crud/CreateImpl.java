@@ -96,6 +96,19 @@ public final class CreateImpl implements Create {
 
             return this;
         }
+        
+        /**
+         * Adds all the specified values mapped to the particular column name.
+         * If the same column name already has a value, the old value will be
+         * overwritten with the new one suggested.
+
+         * @param values      values mapped to column names
+         * @return            a reference to this builder
+         */
+        public CreateImpl.Builder with(Map<String, Object> values) {
+            values.forEach(this::with);
+            return this;
+        }
 
         /**
          * Builds the new {@link CreateImpl} instance.

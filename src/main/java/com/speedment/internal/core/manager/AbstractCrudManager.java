@@ -13,6 +13,8 @@ import com.speedment.internal.core.db.crud.DeleteImpl;
 import com.speedment.internal.core.db.crud.SelectorImpl;
 import com.speedment.internal.core.db.crud.UpdateImpl;
 import com.speedment.internal.core.platform.component.CrudHandlerComponent;
+import com.speedment.internal.core.stream.MapStream;
+import java.util.Map;
 import static java.util.Objects.requireNonNull;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -72,11 +74,9 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
     public final ENTITY persist(ENTITY entity) throws SpeedmentException {
         return handler.create(
             new CreateImpl.Builder(table)
-                .with(
-                    primaryKeyColumn.getName(),
-                    get(entity, primaryKeyColumn)
-                ).build()
-            , this::instantiate
+                .with(valuesFor(entity))
+                .build(), 
+            this::instantiate
         );
     }
 
@@ -85,14 +85,11 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
      */
     @Override
     public final ENTITY update(ENTITY entity) throws SpeedmentException {
-        final UpdateImpl.Builder update = new UpdateImpl.Builder(table);
-        
-        table.streamOf(Column.class).forEachOrdered(col ->
-            update.with(col.getName(), get(entity, col))
-        );
-        
         return handler.update(
-            update.where(selectorFor(entity)).build(), 
+            new UpdateImpl.Builder(table)
+                .with(valuesFor(entity))
+                .where(selectorFor(entity))
+                .build(), 
             this::instantiate
         );
     }
@@ -116,7 +113,7 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
      */
     @Override
     public final ENTITY persist(ENTITY entity, Consumer<MetaResult<ENTITY>> consumer) throws SpeedmentException {
-        throw new UnsupportedOperationException("Meta result consumers are not supported with crud operations.");
+        throw new UnsupportedOperationException("Meta result consumers are not supported with crud operations yet.");
     }
 
     /**
@@ -124,7 +121,7 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
      */
     @Override
     public final ENTITY update(ENTITY entity, Consumer<MetaResult<ENTITY>> consumer) throws SpeedmentException {
-        throw new UnsupportedOperationException("Meta result consumers are not supported with crud operations.");
+        throw new UnsupportedOperationException("Meta result consumers are not supported with crud operations yet.");
     }
 
     /**
@@ -132,7 +129,7 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
      */
     @Override
     public final ENTITY remove(ENTITY entity, Consumer<MetaResult<ENTITY>> consumer) throws SpeedmentException {
-        throw new UnsupportedOperationException("Meta result consumers are not supported with crud operations.");
+        throw new UnsupportedOperationException("Meta result consumers are not supported with crud operations yet.");
     }
 
     /**
@@ -147,6 +144,20 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
             primaryKeyColumn.getName(), 
             get(entity, primaryKeyColumn)
         );
+    }
+    
+    /**
+     * Returns a map of all the values in the specified entity mapped to the
+     * name of the column.
+     * 
+     * @param entity  the entity to get the values from
+     * @return        values mapped to column names
+     */
+    private Map<String, Object> valuesFor(ENTITY entity) {
+        return MapStream.fromStream(table.streamOf(Column.class), 
+            col -> col.getName(), 
+            col -> get(entity, col)
+        ).toMap();
     }
     
     /**
