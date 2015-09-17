@@ -40,8 +40,9 @@ public interface Selector {
     ComparableOperator getOperator();
 
     /**
-     * Returns the operand (if any) that this selector compares with. If the operator specified by
-     * {@link #getOperator()} does not require any operands, this will be {@code empty}.
+     * Returns the operand (if any) that this selector compares with. If the 
+     * operator specified by {@link #getOperator()} does not require any 
+     * operands, this will be {@code empty}.
      *
      * @return  the operand if any and {@code empty} otherwise
      */

@@ -21,7 +21,7 @@ import com.speedment.config.Table;
 /**
  * @author Emil Forslund
  */
-public interface Operation {
+public interface CrudOperation {
 
     /**
      * The type of this CRUD operation.

@@ -9,16 +9,21 @@ import com.speedment.db.crud.Result;
 import com.speedment.db.crud.Selector;
 import com.speedment.exception.SpeedmentException;
 import com.speedment.internal.core.db.crud.CreateImpl;
+import com.speedment.internal.core.db.crud.DeleteImpl;
 import com.speedment.internal.core.db.crud.SelectorImpl;
+import com.speedment.internal.core.db.crud.UpdateImpl;
 import com.speedment.internal.core.platform.component.CrudHandlerComponent;
 import static java.util.Objects.requireNonNull;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- *
- * @author Emil
- * @param <ENTITY>
+ * Abstract base implementation of a Manager that translates all persist,
+ * update and remove operations into their corresponding CRUD operations and
+ * feeds them to the installed {@link CrudHandlerComponent}.
+ * 
+ * @author Emil Forslund
+ * @param <ENTITY>  the type of the entity to manage
  */
 public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY> {
     
@@ -39,15 +44,15 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
     
     @Override
     public Stream<ENTITY> stream() {
-        
+        // TODO initiate stream
     }
 
     @Override
     public ENTITY persist(ENTITY entity) throws SpeedmentException {
-        handler.create(
+        return handler.create(
             new CreateImpl.Builder(table)
                 .with(
-                    primaryKeyColumn.getName(), 
+                    primaryKeyColumn.getName(),
                     get(entity, primaryKeyColumn)
                 ).build()
             , this::instantiate
@@ -56,27 +61,42 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
 
     @Override
     public ENTITY update(ENTITY entity) throws SpeedmentException {
+        final UpdateImpl.Builder update = new UpdateImpl.Builder(table);
         
+        table.streamOf(Column.class).forEachOrdered(col ->
+            update.with(col.getName(), get(entity, col))
+        );
+        
+        return handler.update(
+            update.where(selectorFor(entity)).build(), 
+            this::instantiate
+        );
     }
 
     @Override
     public ENTITY remove(ENTITY entity) throws SpeedmentException {
+        handler.delete(
+            new DeleteImpl.Builder(table)
+                .where(selectorFor(entity))
+                .build()
+        );
         
+        return entity;
     }
 
     @Override
     public ENTITY persist(ENTITY entity, Consumer<MetaResult<ENTITY>> consumer) throws SpeedmentException {
-        
+        throw new UnsupportedOperationException("Meta result consumers are not supported with crud operations.");
     }
 
     @Override
     public ENTITY update(ENTITY entity, Consumer<MetaResult<ENTITY>> consumer) throws SpeedmentException {
-        
+        throw new UnsupportedOperationException("Meta result consumers are not supported with crud operations.");
     }
 
     @Override
     public ENTITY remove(ENTITY entity, Consumer<MetaResult<ENTITY>> consumer) throws SpeedmentException {
-        
+        throw new UnsupportedOperationException("Meta result consumers are not supported with crud operations.");
     }
 
     private Selector selectorFor(ENTITY entity) {

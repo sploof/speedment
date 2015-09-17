@@ -19,7 +19,7 @@ package com.speedment.db.crud;
 /**
  * @author Emil Forslund
  */
-public interface Read extends Operation, Selective {
+public interface Read extends CrudOperation, Selective {
 
     /**
      * {@inheritDoc}

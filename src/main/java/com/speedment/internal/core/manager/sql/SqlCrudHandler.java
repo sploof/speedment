@@ -6,7 +6,6 @@ import com.speedment.config.Dbms;
 import com.speedment.config.parameters.DbmsType;
 import com.speedment.db.crud.Create;
 import com.speedment.db.crud.Delete;
-import com.speedment.db.crud.Operation;
 import com.speedment.db.crud.Read;
 import com.speedment.db.crud.Result;
 import com.speedment.db.crud.Update;
@@ -24,6 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import com.speedment.db.crud.CrudOperation;
 
 /**
  *
@@ -112,7 +112,7 @@ public final class SqlCrudHandler extends AbstractCrudHandler {
         }
     }
     
-    private Stream<Result> execute(Operation operation) {
+    private Stream<Result> execute(CrudOperation operation) {
         try {
             final PreparedStatement ps = SqlWriter.prepare(getConnection(), operation);
             ps.ex
@@ -123,7 +123,7 @@ public final class SqlCrudHandler extends AbstractCrudHandler {
         }
     }
     
-    private Stream<Result> executeUpdate(Operation operation) {
+    private Stream<Result> executeUpdate(CrudOperation operation) {
         try {
             final PreparedStatement ps = SqlWriter.prepare(getConnection(), operation);
             
@@ -136,7 +136,7 @@ public final class SqlCrudHandler extends AbstractCrudHandler {
         }
     }
     
-    private Stream<Result> executeQuery(Operation operation) {
+    private Stream<Result> executeQuery(CrudOperation operation) {
         try {
             final PreparedStatement ps = SqlWriter.prepare(getConnection(), operation);
             final ResultSet rs = ps.executeQuery();

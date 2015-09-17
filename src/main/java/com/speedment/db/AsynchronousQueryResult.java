@@ -17,10 +17,10 @@
 package com.speedment.db;
 
 import com.speedment.annotation.Api;
-import com.speedment.db.crud.Operation;
 import com.speedment.db.crud.Result;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import com.speedment.db.crud.CrudOperation;
 
 /**
  *
@@ -32,9 +32,9 @@ public interface AsynchronousQueryResult<ENTITY> extends AutoCloseable {
 
     Stream<ENTITY> stream();
 
-    Operation getOperation();
+    CrudOperation getOperation();
     
-    void setOperation(Operation operation);
+    void setOperation(CrudOperation operation);
 
     Function<Result, ENTITY> getResultMapper();
 

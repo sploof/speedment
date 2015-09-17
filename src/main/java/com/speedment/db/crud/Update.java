@@ -19,7 +19,7 @@ package com.speedment.db.crud;
 /**
  * @author Emil Forslund
  */
-public interface Update extends Operation, Selective, Valued {
+public interface Update extends CrudOperation, Selective, Valued {
 
     /**
      * {@inheritDoc}

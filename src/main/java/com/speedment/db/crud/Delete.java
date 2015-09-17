@@ -19,7 +19,7 @@ package com.speedment.db.crud;
 /**
  * @author Emil Forslund
  */
-public interface Delete extends Operation, Selective {
+public interface Delete extends CrudOperation, Selective {
 
     /**
      * {@inheritDoc}

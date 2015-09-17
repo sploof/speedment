@@ -19,7 +19,6 @@ package com.speedment.internal.core.manager.sql;
 import com.speedment.config.Table;
 import com.speedment.db.crud.Delete;
 import com.speedment.db.crud.Valued;
-import com.speedment.db.crud.Operation;
 import com.speedment.db.crud.Selective;
 import com.speedment.db.crud.Read;
 import com.speedment.db.crud.Update;
@@ -41,6 +40,8 @@ import java.util.*;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import com.speedment.db.crud.CrudOperation;
+import static java.util.stream.Collectors.joining;
 
 /**
  * Utility class for converting CRUD operations into SQL strings.
@@ -56,7 +57,7 @@ public final class SqlWriter {
      * @param operation  the CRUD operation
      * @return           the prepared statement
      */
-    public static PreparedStatement prepare(Connection con, Operation operation) {
+    public static PreparedStatement prepare(Connection con, CrudOperation operation) {
         try {
             return con.prepareStatement(toSql(operation));
         } catch (SQLException ex) {
@@ -76,7 +77,7 @@ public final class SqlWriter {
      * @param operation  the operation to convert into SQL
      * @return           the SQL string
      */
-    public static String toSql(Operation operation) {
+    public static String toSql(CrudOperation operation) {
         switch (operation.getType()) {
             case CREATE : return create((Create) operation);
             case READ   : return read((Read) operation);
@@ -172,7 +173,7 @@ public final class SqlWriter {
      * @param operation  the operation
      * @return           the list of values
      */
-    public static List<Object> values(Operation operation) {
+    public static List<Object> values(CrudOperation operation) {
         final List<Object> values = new ArrayList<>();
 
         if (operation instanceof Valued) {
@@ -198,7 +199,7 @@ public final class SqlWriter {
      * @param operation  the operation
      * @return           a builder with the first part of the query
      */
-    private static StringBuilder buildOperation(Operation operation) {
+    private static StringBuilder buildOperation(CrudOperation operation) {
         final StringBuilder str = new StringBuilder();
 
         switch (operation.getType()) {
@@ -213,7 +214,7 @@ public final class SqlWriter {
 
         str.append(formatTableName(operation.getTable()));
 
-        if (operation.getType() == Operation.Type.UPDATE) {
+        if (operation.getType() == CrudOperation.Type.UPDATE) {
             str.append(" SET ");
         }
 

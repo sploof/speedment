@@ -19,6 +19,7 @@ package com.speedment.internal.core.db.crud;
 import com.speedment.config.Column;
 import com.speedment.config.Table;
 import com.speedment.db.crud.Create;
+import static java.util.Collections.unmodifiableMap;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,7 +44,7 @@ public final class CreateImpl implements Create {
      */
     private CreateImpl(Table table, Map<String, Object> values) {
         this.table  = table;
-        this.values = values;
+        this.values = unmodifiableMap(values);
     }
 
     /**
