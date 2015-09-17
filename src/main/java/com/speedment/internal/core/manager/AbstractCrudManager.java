@@ -31,6 +31,13 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
     private final Table table;
     private final Column primaryKeyColumn;
     
+    /**
+     * Instantiates the manager. This should not be called until the relevant
+     * {@link CrudHandlerComponent} has been loaded!
+     * 
+     * @param speedment  the speedment instance
+     * @param table      the table to manage
+     */
     protected AbstractCrudManager(Speedment speedment, Table table) {
         super(speedment);
         requireNonNull(table);
@@ -40,15 +47,29 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
         this.primaryKeyColumn = findColumnOfPrimaryKey(table);
     }
     
+    /**
+     * Produces a new instance of the entity that this manager manages. This is
+     * only used internally to implement the {@link #persist(java.lang.Object)}, 
+     * {@link #update(java.lang.Object)} and {@link #stream()} methods.
+     * 
+     * @param result
+     * @return 
+     */
     protected abstract ENTITY instantiate(Result result);
     
+    /**
+     * {@inheritDoc} 
+     */
     @Override
-    public Stream<ENTITY> stream() {
+    public final Stream<ENTITY> stream() {
         // TODO initiate stream
     }
 
+    /**
+     * {@inheritDoc} 
+     */
     @Override
-    public ENTITY persist(ENTITY entity) throws SpeedmentException {
+    public final ENTITY persist(ENTITY entity) throws SpeedmentException {
         return handler.create(
             new CreateImpl.Builder(table)
                 .with(
@@ -59,8 +80,11 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
         );
     }
 
+    /**
+     * {@inheritDoc} 
+     */
     @Override
-    public ENTITY update(ENTITY entity) throws SpeedmentException {
+    public final ENTITY update(ENTITY entity) throws SpeedmentException {
         final UpdateImpl.Builder update = new UpdateImpl.Builder(table);
         
         table.streamOf(Column.class).forEachOrdered(col ->
@@ -73,8 +97,11 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
         );
     }
 
+    /**
+     * {@inheritDoc} 
+     */
     @Override
-    public ENTITY remove(ENTITY entity) throws SpeedmentException {
+    public final ENTITY remove(ENTITY entity) throws SpeedmentException {
         handler.delete(
             new DeleteImpl.Builder(table)
                 .where(selectorFor(entity))
@@ -84,21 +111,37 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
         return entity;
     }
 
+    /**
+     * {@inheritDoc} 
+     */
     @Override
-    public ENTITY persist(ENTITY entity, Consumer<MetaResult<ENTITY>> consumer) throws SpeedmentException {
+    public final ENTITY persist(ENTITY entity, Consumer<MetaResult<ENTITY>> consumer) throws SpeedmentException {
         throw new UnsupportedOperationException("Meta result consumers are not supported with crud operations.");
     }
 
+    /**
+     * {@inheritDoc} 
+     */
     @Override
-    public ENTITY update(ENTITY entity, Consumer<MetaResult<ENTITY>> consumer) throws SpeedmentException {
+    public final ENTITY update(ENTITY entity, Consumer<MetaResult<ENTITY>> consumer) throws SpeedmentException {
         throw new UnsupportedOperationException("Meta result consumers are not supported with crud operations.");
     }
 
+    /**
+     * {@inheritDoc} 
+     */
     @Override
-    public ENTITY remove(ENTITY entity, Consumer<MetaResult<ENTITY>> consumer) throws SpeedmentException {
+    public final ENTITY remove(ENTITY entity, Consumer<MetaResult<ENTITY>> consumer) throws SpeedmentException {
         throw new UnsupportedOperationException("Meta result consumers are not supported with crud operations.");
     }
 
+    /**
+     * Returns a {@link Selector} that matches the specified entity's primary
+     * key.
+     * 
+     * @param entity  to match
+     * @return        matching selector
+     */
     private Selector selectorFor(ENTITY entity) {
         return SelectorImpl.standard(
             primaryKeyColumn.getName(), 
@@ -106,6 +149,14 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
         );
     }
     
+    /**
+     * Finds the {@link Column} that describes the primary key of the specified
+     * table. Note that it is <b>not</b> the {@code PrimaryKeyColumn} node but 
+     * the {@link Column} node that is returned!
+     * 
+     * @param table  the table
+     * @return       the column of the primary key
+     */
     private static Column findColumnOfPrimaryKey(Table table) {
         return table.streamOf(PrimaryKeyColumn.class).findFirst()
             .orElseThrow(() -> new SpeedmentException(

@@ -16,6 +16,7 @@
  */
 package com.speedment.internal.core.code.manager;
 
+import com.speedment.Manager;
 import com.speedment.Speedment;
 import com.speedment.internal.core.code.EntityAndManagerTranslator;
 import static com.speedment.internal.codegen.util.Formatting.*;
@@ -33,7 +34,6 @@ import static com.speedment.internal.codegen.lang.models.constants.DefaultType.V
 import com.speedment.config.Column;
 import com.speedment.config.Dbms;
 import com.speedment.config.Table;
-import com.speedment.internal.core.manager.sql.SqlManager;
 import com.speedment.internal.core.platform.component.ManagerComponent;
 import com.speedment.internal.core.platform.component.ProjectComponent;
 import java.util.Arrays;
@@ -53,7 +53,7 @@ public final class EntityManagerTranslator extends EntityAndManagerTranslator<In
     protected Interface make(File file) {
         return new InterfaceBuilder(MANAGER.getName()).build()
             .public_()
-            .add(Type.of(SqlManager.class).add(GENERIC_OF_ENTITY))
+            .add(Type.of(Manager.class).add(GENERIC_OF_ENTITY))
             .add(generatePrimaryKeyFor(file))
             .call(i -> file.add(Import.of(Type.of(Speedment.class))))
             .call(i -> file.add(Import.of(Type.of(ProjectComponent.class))))
@@ -61,15 +61,10 @@ public final class EntityManagerTranslator extends EntityAndManagerTranslator<In
                 .add("return " + Speedment.class.getSimpleName()
                     + ".get().get(" + ProjectComponent.class.getSimpleName()
                     + ".class).getProject().findTableByName(\"" + table().getRelativeName(Dbms.class) + "\");"))
-            //            .add(Method.of("getTableName", STRING).default_().add(OVERRIDE)
-            //                .add("return \"" + table().getRelativeName(project()) + "\";"))
-
             .add(Method.of("getManagerClass", Type.of(Class.class).add(GENERIC_OF_MANAGER)).default_().add(OVERRIDE)
                 .add("return " + MANAGER.getName() + ".class;"))
             .add(Method.of("getEntityClass", Type.of(Class.class).add(GENERIC_OF_ENTITY)).default_().add(OVERRIDE)
                 .add("return " + ENTITY.getName() + ".class;"))
-//            .add(Method.of("getBuilderClass", Type.of(Class.class).add(GENERIC_OF_BUILDER)).default_().add(OVERRIDE)
-//                .add("return " + BUILDER.getName() + ".class;"))
             .add(generateGet(file))
             .add(generateSet(file))
             .call(i -> file.add(Import.of(Type.of(Speedment.class))))
