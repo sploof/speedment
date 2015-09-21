@@ -17,24 +17,19 @@
 package com.speedment.db.crud;
 
 import com.speedment.config.Table;
-import java.util.function.Supplier;
 
 /**
  * @author Emil Forslund
+ * @param <T>
  */
-public interface CrudOperation {
-
-    /**
-     * The type of this CRUD operation.
-     */
-    enum Type { CREATE, READ, UPDATE, DELETE }
+public interface CrudOperationBuilder<T extends CrudOperation> {
 
     /**
      * Returns the type of this CRUD operation.
      *
      * @return  the type
      */
-    Type getType();
+    CrudOperation.Type getType();
 
     /**
      * Returns the {@link Table} that this operation should operate on.
@@ -42,4 +37,27 @@ public interface CrudOperation {
      * @return  the table
      */
     Table getTable();
+    
+    /**
+     * Returns whether or not this builder will produce a CRUD operation that
+     * is {@link Selective}.
+     * 
+     * @return {@code true} if the operation will be selective
+     */
+    boolean isSelective();
+    
+    /**
+     * Returns whether or not this builder will produce a CRUD operation that
+     * is {@link Valued}.
+     * 
+     * @return {@code true} if the operation will be valued
+     */
+    boolean isValued();
+    
+    /**
+     * Builds this operation.
+     * 
+     * @return  the new instance
+     */
+    T build();
 }

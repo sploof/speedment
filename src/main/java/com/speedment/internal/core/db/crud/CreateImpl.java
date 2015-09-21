@@ -19,6 +19,9 @@ package com.speedment.internal.core.db.crud;
 import com.speedment.config.Column;
 import com.speedment.config.Table;
 import com.speedment.db.crud.Create;
+import static com.speedment.db.crud.CrudOperation.Type.CREATE;
+import com.speedment.db.crud.CrudOperationBuilder;
+import com.speedment.db.crud.ValuedBuilder;
 import static java.util.Collections.unmodifiableMap;
 
 import java.util.Map;
@@ -66,7 +69,7 @@ public final class CreateImpl implements Create {
     /**
      * Builder class for {@link CreateImpl}.
      */
-    public static class Builder {
+    public static class Builder implements CrudOperationBuilder<Create>, ValuedBuilder<Builder> {
 
         private final Table table;
         private final Map<String, Object> values;
@@ -88,6 +91,7 @@ public final class CreateImpl implements Create {
          * @param value   the value
          * @return        a reference to this builder
          */
+        @Override
         public Builder with(String column, Object value) {
             values.put(
                 requireNonNull(column),
@@ -105,9 +109,26 @@ public final class CreateImpl implements Create {
          * @param values      values mapped to column names
          * @return            a reference to this builder
          */
+        @Override
         public CreateImpl.Builder with(Map<String, Object> values) {
             values.forEach(this::with);
             return this;
+        }
+        
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Type getType() {
+            return CREATE;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Table getTable() {
+            return table;
         }
 
         /**
@@ -115,6 +136,7 @@ public final class CreateImpl implements Create {
          *
          * @return  the new instance
          */
+        @Override
         public CreateImpl build() {
             return new CreateImpl(table, values);
         }

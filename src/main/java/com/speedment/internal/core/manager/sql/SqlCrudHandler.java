@@ -20,7 +20,6 @@ import java.util.Spliterators;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import com.speedment.db.crud.CrudOperation;
 
 /**
  *
@@ -108,42 +107,6 @@ public final class SqlCrudHandler extends AbstractCrudHandler {
             throw new SpeedmentException(ex);
         }
     }
-    
-    private Stream<Result> execute(CrudOperation operation) {
-        try {
-            final PreparedStatement ps = SqlWriter.prepare(getConnection(), operation);
-            ps.ex
-            final ResultSet rs = ps.executeQuery();
-            return Stream.of(new SqlResult(rs));
-        } catch (SQLException ex) {
-            throw new SpeedmentException(ex);
-        }
-    }
-    
-    private Stream<Result> executeUpdate(CrudOperation operation) {
-        try {
-            final PreparedStatement ps = SqlWriter.prepare(getConnection(), operation);
-            
-            ps.
-            
-            final ResultSet rs = ps.executeUpdate();
-            return Stream.of(new SqlResult(rs));
-        } catch (SQLException ex) {
-            throw new SpeedmentException(ex);
-        }
-    }
-    
-    private Stream<Result> executeQuery(CrudOperation operation) {
-        try {
-            final PreparedStatement ps = SqlWriter.prepare(getConnection(), operation);
-            final ResultSet rs = ps.executeQuery();
-            return Stream.of(new SqlResult(rs));
-        } catch (SQLException ex) {
-            throw new SpeedmentException(ex);
-        }
-    }
-    
-    
     
     private Connection getConnection() throws SQLException {
         final DbmsType dbmsType = dbms.getType();

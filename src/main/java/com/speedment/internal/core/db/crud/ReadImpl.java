@@ -17,7 +17,10 @@
 package com.speedment.internal.core.db.crud;
 
 import com.speedment.config.Table;
+import static com.speedment.db.crud.CrudOperation.Type.READ;
+import com.speedment.db.crud.CrudOperationBuilder;
 import com.speedment.db.crud.Read;
+import com.speedment.db.crud.SelectiveBuilder;
 import com.speedment.db.crud.Selector;
 
 import java.util.ArrayList;
@@ -82,7 +85,7 @@ public final class ReadImpl implements Read {
     /**
      * Builder class for {@link ReadImpl}.
      */
-    public static class Builder {
+    public static class Builder implements CrudOperationBuilder<Read>, SelectiveBuilder<Builder> {
 
         private final Table table;
         private final List<Selector> selectors;
@@ -106,6 +109,7 @@ public final class ReadImpl implements Read {
          * @param selector  the selector
          * @return          a reference to this builder
          */
+        @Override
         public Builder where(Selector selector) {
             selectors.add(requireNonNull(selector));
             return this;
@@ -117,9 +121,26 @@ public final class ReadImpl implements Read {
          * @param limit  the new limit
          * @return       a reference to this builder
          */
+        @Override
         public Builder limit(long limit) {
             this.limit = limit;
             return this;
+        }
+        
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Type getType() {
+            return READ;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Table getTable() {
+            return table;
         }
 
         /**
@@ -127,6 +148,7 @@ public final class ReadImpl implements Read {
          *
          * @return  the new instance
          */
+        @Override
         public ReadImpl build() {
             return new ReadImpl(table, selectors, limit);
         }

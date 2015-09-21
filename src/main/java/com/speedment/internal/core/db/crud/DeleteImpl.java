@@ -17,7 +17,10 @@
 package com.speedment.internal.core.db.crud;
 
 import com.speedment.config.Table;
+import static com.speedment.db.crud.CrudOperation.Type.DELETE;
+import com.speedment.db.crud.CrudOperationBuilder;
 import com.speedment.db.crud.Delete;
+import com.speedment.db.crud.SelectiveBuilder;
 import com.speedment.db.crud.Selector;
 
 import java.util.ArrayList;
@@ -77,7 +80,7 @@ public final class DeleteImpl implements Delete {
     /**
      * Builder class for {@link DeleteImpl}.
      */
-    public static class Builder {
+    public static class Builder implements CrudOperationBuilder<Delete>, SelectiveBuilder<Builder> {
 
         private final Table table;
         private final List<Selector> selectors;
@@ -100,6 +103,7 @@ public final class DeleteImpl implements Delete {
          * @param selector  the selector
          * @return          a reference to this builder
          */
+        @Override
         public Builder where(Selector selector) {
             selectors.add(requireNonNull(selector));
             return this;
@@ -111,9 +115,26 @@ public final class DeleteImpl implements Delete {
          * @param limit  the new limit
          * @return       a reference to this builder
          */
+        @Override
         public Builder limit(long limit) {
             this.limit = limit;
             return this;
+        }
+        
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Type getType() {
+            return DELETE;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Table getTable() {
+            return table;
         }
 
         /**
@@ -121,6 +142,7 @@ public final class DeleteImpl implements Delete {
          *
          * @return  the new instance
          */
+        @Override
         public DeleteImpl build() {
             return new DeleteImpl(table, selectors, limit);
         }

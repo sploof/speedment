@@ -16,9 +16,14 @@
  */
 package com.speedment.internal.core.db.crud;
 
+import com.speedment.config.Column;
 import com.speedment.config.Table;
+import static com.speedment.db.crud.CrudOperation.Type.UPDATE;
+import com.speedment.db.crud.CrudOperationBuilder;
+import com.speedment.db.crud.SelectiveBuilder;
 import com.speedment.db.crud.Selector;
 import com.speedment.db.crud.Update;
+import com.speedment.db.crud.ValuedBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,7 +95,7 @@ public final class UpdateImpl implements Update {
     /**
      * Builder class for {@link UpdateImpl}.
      */
-    public static class Builder {
+    public static class Builder implements CrudOperationBuilder<Update>, ValuedBuilder<Builder>, SelectiveBuilder<Builder> {
 
         private final Table table;
         private final List<Selector> selectors;
@@ -115,8 +120,21 @@ public final class UpdateImpl implements Update {
          * @param selector  the selector
          * @return          a reference to this builder
          */
+        @Override
         public Builder where(Selector selector) {
             selectors.add(requireNonNull(selector));
+            return this;
+        }
+        
+        /**
+         * Limits the maximum number of entities that the operation may affect.
+         *
+         * @param limit  the new limit
+         * @return       a reference to this builder
+         */
+        @Override
+        public Builder limit(long limit) {
+            this.limit = limit;
             return this;
         }
 
@@ -127,6 +145,7 @@ public final class UpdateImpl implements Update {
          * @param value       the value
          * @return            a reference to this builder
          */
+        @Override
         public Builder with(String columnName, Object value) {
             values.put(
                 requireNonNull(columnName),
@@ -144,20 +163,26 @@ public final class UpdateImpl implements Update {
          * @param values      values mapped to column names
          * @return            a reference to this builder
          */
+        @Override
         public Builder with(Map<String, Object> values) {
             values.forEach(this::with);
             return this;
         }
 
         /**
-         * Limits the maximum number of entities that the operation may affect.
-         *
-         * @param limit  the new limit
-         * @return       a reference to this builder
+         * {@inheritDoc}
          */
-        public Builder limit(long limit) {
-            this.limit = limit;
-            return this;
+        @Override
+        public Type getType() {
+            return UPDATE;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Table getTable() {
+            return table;
         }
 
         /**
@@ -165,6 +190,7 @@ public final class UpdateImpl implements Update {
          *
          * @return  the new instance
          */
+        @Override
         public UpdateImpl build() {
             return new UpdateImpl(table, selectors, values, limit);
         }
