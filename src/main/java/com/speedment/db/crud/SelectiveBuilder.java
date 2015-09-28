@@ -3,9 +3,10 @@ package com.speedment.db.crud;
 /**
  *
  * @author Emil Forslund
- * @param <R> the implementing class
+ * @param <OPERATION> the type of the selective operation being built
+ * @param <BUILDER>   the type of the implementing builder class
  */
-public interface SelectiveBuilder<R extends SelectiveBuilder<R>> {
+public interface SelectiveBuilder<OPERATION extends CrudOperation & Selective, BUILDER extends SelectiveBuilder<OPERATION, BUILDER>> extends CrudOperationBuilder<OPERATION> {
     
     /**
      * Appends an additional selector to this builder to determine which 
@@ -14,7 +15,7 @@ public interface SelectiveBuilder<R extends SelectiveBuilder<R>> {
      * @param selector  the selector
      * @return          a reference to this builder
      */
-    R where(Selector selector);
+    BUILDER where(Selector selector);
 
     /**
      * Limits the maximum number of entities that the operation may affect.
@@ -22,5 +23,13 @@ public interface SelectiveBuilder<R extends SelectiveBuilder<R>> {
      * @param limit  the new limit
      * @return       a reference to this builder
      */
-    R limit(long limit);
+    BUILDER limit(long limit);
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default boolean isSelective() {
+        return true;
+    }
 }

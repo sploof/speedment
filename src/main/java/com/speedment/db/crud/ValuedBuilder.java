@@ -5,9 +5,10 @@ import java.util.Map;
 /**
  *
  * @author Emil Forslund
- * @param <R> the implementing class
+ * @param <OPERATION>  the type of the valued operation being built
+ * @param <BUILDER>    the type of the implementing builder class
  */
-public interface ValuedBuilder<R extends ValuedBuilder<R>> {
+public interface ValuedBuilder<OPERATION extends CrudOperation & Valued, BUILDER extends ValuedBuilder<OPERATION, BUILDER>> extends CrudOperationBuilder<OPERATION> {
     
     /**
      * Sets the value for a particular column.
@@ -16,7 +17,7 @@ public interface ValuedBuilder<R extends ValuedBuilder<R>> {
      * @param value       the value
      * @return            a reference to this builder
      */
-    R with(String columnName, Object value);
+    BUILDER with(String columnName, Object value);
 
     /**
      * Adds all the specified values mapped to the particular column name.
@@ -26,5 +27,13 @@ public interface ValuedBuilder<R extends ValuedBuilder<R>> {
      * @param values      values mapped to column names
      * @return            a reference to this builder
      */
-    R with(Map<String, Object> values);
+    BUILDER with(Map<String, Object> values);
+
+    /**
+     * {@inheritDoc} 
+     */
+    @Override
+    default boolean isValued() {
+        return true;
+    }
 }

@@ -20,7 +20,6 @@ import com.speedment.config.Column;
 import com.speedment.config.Table;
 import com.speedment.db.crud.Create;
 import static com.speedment.db.crud.CrudOperation.Type.CREATE;
-import com.speedment.db.crud.CrudOperationBuilder;
 import com.speedment.db.crud.ValuedBuilder;
 import static java.util.Collections.unmodifiableMap;
 
@@ -69,7 +68,7 @@ public final class CreateImpl implements Create {
     /**
      * Builder class for {@link CreateImpl}.
      */
-    public static class Builder implements CrudOperationBuilder<Create>, ValuedBuilder<Builder> {
+    public static class Builder implements ValuedBuilder<Create, Builder> {
 
         private final Table table;
         private final Map<String, Object> values;
@@ -85,11 +84,7 @@ public final class CreateImpl implements Create {
         }
 
         /**
-         * Sets the value for a particular {@link Column}.
-         *
-         * @param column  the column
-         * @param value   the value
-         * @return        a reference to this builder
+         * {@inheritDoc}
          */
         @Override
         public Builder with(String column, Object value) {
@@ -102,12 +97,7 @@ public final class CreateImpl implements Create {
         }
         
         /**
-         * Adds all the specified values mapped to the particular column name.
-         * If the same column name already has a value, the old value will be
-         * overwritten with the new one suggested.
-
-         * @param values      values mapped to column names
-         * @return            a reference to this builder
+         * {@inheritDoc}
          */
         @Override
         public CreateImpl.Builder with(Map<String, Object> values) {
@@ -132,9 +122,7 @@ public final class CreateImpl implements Create {
         }
 
         /**
-         * Builds the new {@link CreateImpl} instance.
-         *
-         * @return  the new instance
+         * {@inheritDoc}
          */
         @Override
         public CreateImpl build() {

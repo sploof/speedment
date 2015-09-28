@@ -95,7 +95,7 @@ public final class UpdateImpl implements Update {
     /**
      * Builder class for {@link UpdateImpl}.
      */
-    public static class Builder implements CrudOperationBuilder<Update>, ValuedBuilder<Builder>, SelectiveBuilder<Builder> {
+    public static class Builder implements ValuedBuilder<Update, Builder>, SelectiveBuilder<Update, Builder> {
 
         private final Table table;
         private final List<Selector> selectors;
@@ -115,10 +115,7 @@ public final class UpdateImpl implements Update {
         }
 
         /**
-         * Appends an additional selector to this builder to determine which entities to update.
-         *
-         * @param selector  the selector
-         * @return          a reference to this builder
+         * {@inheritDoc}
          */
         @Override
         public Builder where(Selector selector) {
@@ -127,10 +124,7 @@ public final class UpdateImpl implements Update {
         }
         
         /**
-         * Limits the maximum number of entities that the operation may affect.
-         *
-         * @param limit  the new limit
-         * @return       a reference to this builder
+         * {@inheritDoc}
          */
         @Override
         public Builder limit(long limit) {
@@ -139,11 +133,7 @@ public final class UpdateImpl implements Update {
         }
 
         /**
-         * Sets the value for a particular {@link Column}.
-         *
-         * @param columnName  the column
-         * @param value       the value
-         * @return            a reference to this builder
+         * {@inheritDoc}
          */
         @Override
         public Builder with(String columnName, Object value) {
@@ -156,12 +146,7 @@ public final class UpdateImpl implements Update {
         }
         
         /**
-         * Adds all the specified values mapped to the particular column name.
-         * If the same column name already has a value, the old value will be
-         * overwritten with the new one suggested.
-
-         * @param values      values mapped to column names
-         * @return            a reference to this builder
+         * {@inheritDoc}
          */
         @Override
         public Builder with(Map<String, Object> values) {
@@ -186,9 +171,7 @@ public final class UpdateImpl implements Update {
         }
 
         /**
-         * Builds the new {@link UpdateImpl} instance.
-         *
-         * @return  the new instance
+         * {@inheritDoc}
          */
         @Override
         public UpdateImpl build() {

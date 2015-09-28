@@ -85,7 +85,7 @@ public final class ReadImpl implements Read {
     /**
      * Builder class for {@link ReadImpl}.
      */
-    public static class Builder implements CrudOperationBuilder<Read>, SelectiveBuilder<Builder> {
+    public static class Builder implements SelectiveBuilder<Read, Builder> {
 
         private final Table table;
         private final List<Selector> selectors;
@@ -103,11 +103,7 @@ public final class ReadImpl implements Read {
         }
 
         /**
-         * Appends an additional selector to this builder to determine which 
-         * entities to read.
-         *
-         * @param selector  the selector
-         * @return          a reference to this builder
+         * {@inheritDoc}
          */
         @Override
         public Builder where(Selector selector) {
@@ -116,10 +112,7 @@ public final class ReadImpl implements Read {
         }
 
         /**
-         * Limits the maximum number of entities that the operation may affect.
-         *
-         * @param limit  the new limit
-         * @return       a reference to this builder
+         * {@inheritDoc}
          */
         @Override
         public Builder limit(long limit) {
@@ -144,9 +137,7 @@ public final class ReadImpl implements Read {
         }
 
         /**
-         * Builds the new {@link ReadImpl} instance.
-         *
-         * @return  the new instance
+         * {@inheritDoc}
          */
         @Override
         public ReadImpl build() {

@@ -80,7 +80,7 @@ public final class DeleteImpl implements Delete {
     /**
      * Builder class for {@link DeleteImpl}.
      */
-    public static class Builder implements CrudOperationBuilder<Delete>, SelectiveBuilder<Builder> {
+    public static class Builder implements SelectiveBuilder<Delete, Builder> {
 
         private final Table table;
         private final List<Selector> selectors;
@@ -98,10 +98,7 @@ public final class DeleteImpl implements Delete {
         }
 
         /**
-         * Appends an additional selector to this builder to determine which entities to delete.
-         *
-         * @param selector  the selector
-         * @return          a reference to this builder
+         * {@inheritDoc}
          */
         @Override
         public Builder where(Selector selector) {
@@ -110,10 +107,7 @@ public final class DeleteImpl implements Delete {
         }
 
         /**
-         * Limits the maximum number of entities that the operation may affect.
-         *
-         * @param limit  the new limit
-         * @return       a reference to this builder
+         * {@inheritDoc}
          */
         @Override
         public Builder limit(long limit) {
@@ -138,9 +132,7 @@ public final class DeleteImpl implements Delete {
         }
 
         /**
-         * Builds the new {@link DeleteImpl} instance.
-         *
-         * @return  the new instance
+         * {@inheritDoc}
          */
         @Override
         public DeleteImpl build() {

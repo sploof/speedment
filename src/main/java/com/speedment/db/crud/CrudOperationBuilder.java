@@ -44,7 +44,9 @@ public interface CrudOperationBuilder<T extends CrudOperation> {
      * 
      * @return {@code true} if the operation will be selective
      */
-    boolean isSelective();
+    default boolean isSelective() {
+        return false;
+    }
     
     /**
      * Returns whether or not this builder will produce a CRUD operation that
@@ -52,7 +54,9 @@ public interface CrudOperationBuilder<T extends CrudOperation> {
      * 
      * @return {@code true} if the operation will be valued
      */
-    boolean isValued();
+    default boolean isValued() {
+        return false;
+    }
     
     /**
      * Builds this operation.
