@@ -16,7 +16,10 @@
  */
 package com.speedment.config.parameters;
 
+import com.speedment.Speedment;
 import com.speedment.annotation.Api;
+import com.speedment.config.Dbms;
+import com.speedment.db.DbmsHandler;
 import java.util.Optional;
 import java.util.Set;
 
@@ -205,4 +208,13 @@ public interface DbmsType {
      * to be excluded when examining a Dbms for schemas
      */
     Set<String> getSchemaExcludeSet();
+    
+    /**
+     * Constructs a handler for this type of DBMS.
+     * 
+     * @param speedment  the speedment instance
+     * @param dbms       the dbms entity to create a handler for
+     * @return           the created handler
+     */
+    DbmsHandler makeDbmsHandler(Speedment speedment, Dbms dbms);
 }

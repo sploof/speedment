@@ -10,6 +10,7 @@ import com.speedment.db.crud.Selector;
 import com.speedment.exception.SpeedmentException;
 import com.speedment.internal.core.db.crud.CreateImpl;
 import com.speedment.internal.core.db.crud.DeleteImpl;
+import com.speedment.internal.core.db.crud.ReadImpl;
 import com.speedment.internal.core.db.crud.SelectorImpl;
 import com.speedment.internal.core.db.crud.UpdateImpl;
 import com.speedment.internal.core.platform.component.CrudHandlerComponent;
@@ -64,7 +65,11 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
      */
     @Override
     public final Stream<ENTITY> stream() {
-        // TODO initiate stream
+        return handler.read(
+            new ReadImpl.Builder(table)
+                .build(),
+            this::instantiate
+        );
     }
 
     /**
