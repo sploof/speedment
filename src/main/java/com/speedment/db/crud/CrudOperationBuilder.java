@@ -16,12 +16,14 @@
  */
 package com.speedment.db.crud;
 
+import com.speedment.annotation.Api;
 import com.speedment.config.Table;
 
 /**
  * @author Emil Forslund
- * @param <T>
+ * @param <T> the type of the operation being built
  */
+@Api(version = "2.2")
 public interface CrudOperationBuilder<T extends CrudOperation> {
 
     /**
@@ -55,6 +57,16 @@ public interface CrudOperationBuilder<T extends CrudOperation> {
      * @return {@code true} if the operation will be valued
      */
     default boolean isValued() {
+        return false;
+    }
+    
+    /**
+     * Returns whether or not this builder will produce a CRUD operation that
+     * is {@link Joinable}.
+     * 
+     * @return {@code true} if the operation will be joinable
+     */
+    default boolean isJoinable() {
         return false;
     }
     

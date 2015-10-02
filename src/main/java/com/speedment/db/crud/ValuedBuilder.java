@@ -1,5 +1,6 @@
 package com.speedment.db.crud;
 
+import com.speedment.annotation.Api;
 import java.util.Map;
 
 /**
@@ -8,6 +9,7 @@ import java.util.Map;
  * @param <OPERATION>  the type of the valued operation being built
  * @param <BUILDER>    the type of the implementing builder class
  */
+@Api(version = "2.2")
 public interface ValuedBuilder<OPERATION extends CrudOperation & Valued, BUILDER extends ValuedBuilder<OPERATION, BUILDER>> extends CrudOperationBuilder<OPERATION> {
     
     /**

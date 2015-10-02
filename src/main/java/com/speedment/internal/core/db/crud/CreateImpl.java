@@ -16,11 +16,10 @@
  */
 package com.speedment.internal.core.db.crud;
 
-import com.speedment.config.Column;
 import com.speedment.config.Table;
 import com.speedment.db.crud.Create;
+import com.speedment.db.crud.CreateBuilder;
 import static com.speedment.db.crud.CrudOperation.Type.CREATE;
-import com.speedment.db.crud.ValuedBuilder;
 import static java.util.Collections.unmodifiableMap;
 
 import java.util.Map;
@@ -68,7 +67,7 @@ public final class CreateImpl implements Create {
     /**
      * Builder class for {@link CreateImpl}.
      */
-    public static class Builder implements ValuedBuilder<Create, Builder> {
+    public static class Builder implements CreateBuilder {
 
         private final Table table;
         private final Map<String, Object> values;

@@ -16,10 +16,13 @@
  */
 package com.speedment.db.crud;
 
+import com.speedment.annotation.Api;
+
 /**
  * @author Emil Forslund
  */
-public interface Read extends CrudOperation, Selective {
+@Api(version = "2.2")
+public interface Read extends CrudOperation, Selective, Joinable {
 
     /**
      * {@inheritDoc}

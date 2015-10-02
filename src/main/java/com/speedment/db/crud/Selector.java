@@ -16,6 +16,7 @@
  */
 package com.speedment.db.crud;
 
+import com.speedment.annotation.Api;
 import com.speedment.field.operators.ComparableOperator;
 
 import java.util.Optional;
@@ -23,6 +24,7 @@ import java.util.Optional;
 /**
  * @author Emil Forslund
  */
+@Api(version = "2.2")
 public interface Selector {
 
     /**

@@ -18,9 +18,8 @@ package com.speedment.internal.core.db.crud;
 
 import com.speedment.config.Table;
 import static com.speedment.db.crud.CrudOperation.Type.DELETE;
-import com.speedment.db.crud.CrudOperationBuilder;
 import com.speedment.db.crud.Delete;
-import com.speedment.db.crud.SelectiveBuilder;
+import com.speedment.db.crud.DeleteBuilder;
 import com.speedment.db.crud.Selector;
 
 import java.util.ArrayList;
@@ -80,7 +79,7 @@ public final class DeleteImpl implements Delete {
     /**
      * Builder class for {@link DeleteImpl}.
      */
-    public static class Builder implements SelectiveBuilder<Delete, Builder> {
+    public static class Builder implements DeleteBuilder {
 
         private final Table table;
         private final List<Selector> selectors;

@@ -16,6 +16,8 @@
  */
 package com.speedment.field.builders;
 
+import com.speedment.annotation.Api;
+
 /**
  * Indicates that a certain interface has a value that can be obtained using a
  * getValue() method.
@@ -23,6 +25,7 @@ package com.speedment.field.builders;
  * @author pemi
  * @param <T> the value type
  */
+@Api(version = "2.1")
 public interface HasOperand<T> {
 
     T getOperand();

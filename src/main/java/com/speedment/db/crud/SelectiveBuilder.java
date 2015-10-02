@@ -1,11 +1,14 @@
 package com.speedment.db.crud;
 
+import com.speedment.annotation.Api;
+
 /**
  *
  * @author Emil Forslund
  * @param <OPERATION> the type of the selective operation being built
  * @param <BUILDER>   the type of the implementing builder class
  */
+@Api(version = "2.2")
 public interface SelectiveBuilder<OPERATION extends CrudOperation & Selective, BUILDER extends SelectiveBuilder<OPERATION, BUILDER>> extends CrudOperationBuilder<OPERATION> {
     
     /**

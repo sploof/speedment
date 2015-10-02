@@ -16,14 +16,11 @@
  */
 package com.speedment.internal.core.db.crud;
 
-import com.speedment.config.Column;
 import com.speedment.config.Table;
 import static com.speedment.db.crud.CrudOperation.Type.UPDATE;
-import com.speedment.db.crud.CrudOperationBuilder;
-import com.speedment.db.crud.SelectiveBuilder;
 import com.speedment.db.crud.Selector;
 import com.speedment.db.crud.Update;
-import com.speedment.db.crud.ValuedBuilder;
+import com.speedment.db.crud.UpdateBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +92,7 @@ public final class UpdateImpl implements Update {
     /**
      * Builder class for {@link UpdateImpl}.
      */
-    public static class Builder implements ValuedBuilder<Update, Builder>, SelectiveBuilder<Update, Builder> {
+    public static class Builder implements UpdateBuilder {
 
         private final Table table;
         private final List<Selector> selectors;

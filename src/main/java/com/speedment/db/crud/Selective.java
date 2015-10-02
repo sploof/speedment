@@ -16,11 +16,13 @@
  */
 package com.speedment.db.crud;
 
+import com.speedment.annotation.Api;
 import java.util.stream.Stream;
 
 /**
  * @author Emil Forslund
  */
+@Api(version = "2.2")
 public interface Selective {
 
     /**

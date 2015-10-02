@@ -16,12 +16,13 @@
  */
 package com.speedment.db.crud;
 
+import com.speedment.annotation.Api;
 import com.speedment.config.Table;
-import java.util.function.Supplier;
 
 /**
  * @author Emil Forslund
  */
+@Api(version = "2.2")
 public interface CrudOperation {
 
     /**

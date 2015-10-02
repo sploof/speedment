@@ -16,6 +16,7 @@
  */
 package com.speedment.db.crud;
 
+import com.speedment.annotation.Api;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
@@ -23,6 +24,7 @@ import java.sql.*;
 /**
  * @author Emil Forslund
  */
+@Api(version = "2.2")
 public interface Result {
 
     Array getArray(String columnName);

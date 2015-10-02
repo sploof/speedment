@@ -18,9 +18,8 @@ package com.speedment.internal.core.db.crud;
 
 import com.speedment.config.Table;
 import static com.speedment.db.crud.CrudOperation.Type.READ;
-import com.speedment.db.crud.CrudOperationBuilder;
 import com.speedment.db.crud.Read;
-import com.speedment.db.crud.SelectiveBuilder;
+import com.speedment.db.crud.ReadBuilder;
 import com.speedment.db.crud.Selector;
 
 import java.util.ArrayList;
@@ -85,7 +84,7 @@ public final class ReadImpl implements Read {
     /**
      * Builder class for {@link ReadImpl}.
      */
-    public static class Builder implements SelectiveBuilder<Read, Builder> {
+    public static class Builder implements ReadBuilder {
 
         private final Table table;
         private final List<Selector> selectors;

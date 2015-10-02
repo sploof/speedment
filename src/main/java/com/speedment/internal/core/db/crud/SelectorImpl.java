@@ -76,20 +76,19 @@ public final class SelectorImpl implements Selector {
     }
 
     /**
-     * Constructs a new {@link Selector} based on a binary predicate and a value to test it against.
+     * Constructs a new {@link Selector} based on a comparable predicate builder.
      *
      * @param predicate  the predicate
-     * @param value      the value to test against
      * @param <ENTITY>   the type of the entity
      * @param <V>        the type of the value
      * @return           the constructed {@link Selector}
      * @see              BinaryPredicateBuilder
      */
-    public static <ENTITY, V extends Comparable<V>> Selector fromComparablePredicate(ComparablePredicateBuilder<ENTITY, V> predicate, V value) {
+    public static <ENTITY, V extends Comparable<V>> Selector fromComparablePredicate(ComparablePredicateBuilder<ENTITY, V> predicate) {
         return new SelectorImpl(
             predicate.getField().getColumnName(),
             predicate.getComparableOperator(),
-            value
+            predicate.getOperand()
         );
     }
 
