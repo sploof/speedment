@@ -18,6 +18,7 @@ package com.speedment.internal.core.db.crud;
 
 import com.speedment.config.Table;
 import static com.speedment.db.crud.CrudOperation.Type.READ;
+import com.speedment.db.crud.Join;
 import com.speedment.db.crud.Read;
 import com.speedment.db.crud.ReadBuilder;
 import com.speedment.db.crud.Selector;
@@ -37,6 +38,7 @@ public final class ReadImpl implements Read {
 
     private final Table table;
     private final List<Selector> selectors;
+    private final List<Join> joins;
     private final long limit;
 
     /**
@@ -50,10 +52,12 @@ public final class ReadImpl implements Read {
     private ReadImpl(
             Table table, 
             List<Selector> selectors, 
+            List<Join> joins, 
             long limit) {
         
         this.table     = table;
         this.selectors = selectors;
+        this.joins     = joins;
         this.limit     = limit;
     }
 
@@ -72,6 +76,14 @@ public final class ReadImpl implements Read {
     public Stream<Selector> getSelectors() {
         return selectors.stream();
     }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Stream<Join> getJoins() {
+        return joins.stream();
+    }
 
     /**
      * {@inheritDoc}
@@ -88,6 +100,7 @@ public final class ReadImpl implements Read {
 
         private final Table table;
         private final List<Selector> selectors;
+        private final List<Join> joins;
         private long limit;
 
         /**
@@ -98,6 +111,7 @@ public final class ReadImpl implements Read {
         public Builder(Table table) {
             this.table     = requireNonNull(table);
             this.selectors = new ArrayList<>();
+            this.joins     = new ArrayList<>();
             this.limit     = Long.MAX_VALUE;
         }
 
@@ -107,6 +121,15 @@ public final class ReadImpl implements Read {
         @Override
         public Builder where(Selector selector) {
             selectors.add(requireNonNull(selector));
+            return this;
+        }
+        
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Builder join(Join join) {
+            joins.add(join);
             return this;
         }
 
@@ -140,7 +163,7 @@ public final class ReadImpl implements Read {
          */
         @Override
         public ReadImpl build() {
-            return new ReadImpl(table, selectors, limit);
+            return new ReadImpl(table, selectors, joins, limit);
         }
     }
 }
