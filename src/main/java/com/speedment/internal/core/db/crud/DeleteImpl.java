@@ -35,18 +35,18 @@ import static java.util.Objects.requireNonNull;
  */
 public final class DeleteImpl implements Delete {
 
-    private final Table table;
+    private final String table;
     private final List<Selector> selectors;
     private final long limit;
 
     /**
      * DeleteImpl should be constructed using the appropriate {@link Builder} class.
      *
-     * @param table      the table to delete the entity in
+     * @param table      the name of the table to delete the entity in
      * @param selectors  the selectors used to determine which entities to delete
      * @param limit      the maximum number of entities to affect
      */
-    private DeleteImpl(Table table, List<Selector> selectors, long limit) {
+    private DeleteImpl(String table, List<Selector> selectors, long limit) {
         this.table     = table;
         this.selectors = selectors;
         this.limit     = limit;
@@ -56,7 +56,7 @@ public final class DeleteImpl implements Delete {
      * {@inheritDoc}
      */
     @Override
-    public Table getTable() {
+    public String getTableName() {
         return table;
     }
 
@@ -81,7 +81,7 @@ public final class DeleteImpl implements Delete {
      */
     public static class Builder implements DeleteBuilder {
 
-        private final Table table;
+        private final String table;
         private final List<Selector> selectors;
         private long limit;
 
@@ -90,7 +90,7 @@ public final class DeleteImpl implements Delete {
          *
          * @param table  the table
          */
-        public Builder(Table table) {
+        public Builder(String table) {
             this.table     = requireNonNull(table);
             this.selectors = new ArrayList<>();
             this.limit     = Long.MAX_VALUE;
@@ -126,7 +126,7 @@ public final class DeleteImpl implements Delete {
          * {@inheritDoc}
          */
         @Override
-        public Table getTable() {
+        public String getTableName() {
             return table;
         }
 

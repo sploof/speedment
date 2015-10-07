@@ -17,7 +17,7 @@
 package com.speedment.field;
 
 import com.speedment.annotation.Api;
-import com.speedment.field.methods.Getter;
+import com.speedment.field.builders.ForeignKeyFinderBuilder;
 
 /**
  *
@@ -28,13 +28,29 @@ import com.speedment.field.methods.Getter;
  */
 @Api(version = "2.1")
 public interface ReferenceForeignKeyField<ENTITY, V, FK> extends ReferenceField<ENTITY, V> {
+
+    /**
+     * Returns the full name of the table that this field is referencing.
+     * 
+     * @return  the foreign table name
+     */
+    String getForeignTableName();
+    
+    /**
+     * Returns the name of the column in the foreign entity referenced by this
+     * field.
+     * 
+     * @return  the foreign column name
+     */
+    String getForeignColumnName();
+    
     /**
      * Returns a function that can find a foreign entity pointed out by this
      * field.
      * 
      * @return  the finder
      */
-    Getter<ENTITY, FK> finder();
+    ForeignKeyFinderBuilder<ENTITY, V, FK> finder();
     
     /**
      * Finds and returns the foreign key Entity using the provided Entity.

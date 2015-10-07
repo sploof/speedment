@@ -36,7 +36,7 @@ import static java.util.Objects.requireNonNull;
  */
 public final class ReadImpl implements Read {
 
-    private final Table table;
+    private final String table;
     private final List<Selector> selectors;
     private final List<Join> joins;
     private final long limit;
@@ -45,12 +45,12 @@ public final class ReadImpl implements Read {
      * ReadImpl should be constructed using the appropriate {@link Builder} 
      * class.
      *
-     * @param table      the table to read the entity from
+     * @param table      the name of the table to read the entity from
      * @param selectors  the selectors used to determine which entities to read
      * @param limit      the maximum number of entities to read
      */
     private ReadImpl(
-            Table table, 
+            String table, 
             List<Selector> selectors, 
             List<Join> joins, 
             long limit) {
@@ -65,7 +65,7 @@ public final class ReadImpl implements Read {
      * {@inheritDoc}
      */
     @Override
-    public Table getTable() {
+    public String getTableName() {
         return table;
     }
 
@@ -98,7 +98,7 @@ public final class ReadImpl implements Read {
      */
     public static class Builder implements ReadBuilder {
 
-        private final Table table;
+        private final String table;
         private final List<Selector> selectors;
         private final List<Join> joins;
         private long limit;
@@ -106,9 +106,9 @@ public final class ReadImpl implements Read {
         /**
          * Constructs a builder for the specified {@link Table}.
          *
-         * @param table  the table
+         * @param table  the name of the table
          */
-        public Builder(Table table) {
+        public Builder(String table) {
             this.table     = requireNonNull(table);
             this.selectors = new ArrayList<>();
             this.joins     = new ArrayList<>();
@@ -154,7 +154,7 @@ public final class ReadImpl implements Read {
          * {@inheritDoc}
          */
         @Override
-        public Table getTable() {
+        public String getTableName() {
             return table;
         }
 

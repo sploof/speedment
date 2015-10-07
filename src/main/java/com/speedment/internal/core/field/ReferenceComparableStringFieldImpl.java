@@ -32,8 +32,8 @@ public class ReferenceComparableStringFieldImpl<ENTITY>
     extends ReferenceComparableFieldImpl<ENTITY, String> 
     implements ReferenceComparableStringField<ENTITY> {
 
-    public ReferenceComparableStringFieldImpl(String columnName, Getter<ENTITY, String> getter, Setter<ENTITY, String> setter) {
-        super(columnName, getter, setter);
+    public ReferenceComparableStringFieldImpl(String tableName, String columnName, Getter<ENTITY, String> getter, Setter<ENTITY, String> setter) {
+        super(tableName, columnName, getter, setter);
     }
 
     @Override

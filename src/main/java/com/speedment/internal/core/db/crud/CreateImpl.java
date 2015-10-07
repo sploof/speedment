@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * The default implementation of the {@link Create} operation.
@@ -34,16 +35,16 @@ import static java.util.Objects.requireNonNull;
  */
 public final class CreateImpl implements Create {
 
-    private final Table table;
+    private final String table;
     private final Map<String, Object> values;
 
     /**
      * CreateImpl should be constructed using the appropriate {@link Builder} class.
      *
-     * @param table   the table to create the entity in
+     * @param table   the name of the table to create the entity in
      * @param values  the values to use
      */
-    private CreateImpl(Table table, Map<String, Object> values) {
+    private CreateImpl(String table, Map<String, Object> values) {
         this.table  = table;
         this.values = unmodifiableMap(values);
     }
@@ -52,7 +53,7 @@ public final class CreateImpl implements Create {
      * {@inheritDoc}
      */
     @Override
-    public Table getTable() {
+    public String getTableName() {
         return table;
     }
 
@@ -69,15 +70,15 @@ public final class CreateImpl implements Create {
      */
     public static class Builder implements CreateBuilder {
 
-        private final Table table;
+        private final String table;
         private final Map<String, Object> values;
 
         /**
-         * Constructs a builder for the specified {@link Table}.
+         * Constructs a builder for the specified table.
          *
-         * @param table  the table
+         * @param table  the table name
          */
-        public Builder(Table table) {
+        public Builder(String table) {
             this.table  = requireNonNull(table);
             this.values = new ConcurrentHashMap<>();
         }
@@ -116,7 +117,7 @@ public final class CreateImpl implements Create {
          * {@inheritDoc}
          */
         @Override
-        public Table getTable() {
+        public String getTableName() {
             return table;
         }
 

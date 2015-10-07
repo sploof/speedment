@@ -23,30 +23,34 @@ import com.speedment.field.operators.StandardUnaryOperator;
 import com.speedment.field.builders.UnaryPredicateBuilder;
 import com.speedment.internal.core.field.builders.SetterBuilderImpl;
 import com.speedment.internal.core.field.builders.UnaryPredicateBuilderImpl;
-import static java.util.Objects.requireNonNull;
-import static java.util.Objects.requireNonNull;
 import com.speedment.field.builders.SetterBuilder;
-import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNull;
 
 /**
  * This class represents a Reference Field. A Reference Field is something that
  * extends {@link Object}.
  *
- * @author pemi
+ * @author Emil Forslund
  * @param <ENTITY> The entity type
  * @param <V> The value type
  */
 public class ReferenceFieldImpl<ENTITY, V> implements ReferenceField<ENTITY, V> {
 
+    private final String tableName;
     private final String columnName;
     private final Getter<ENTITY, V> getter;
     private final Setter<ENTITY, V> setter;
 
-    public ReferenceFieldImpl(String columnName, Getter<ENTITY, V> getter, Setter<ENTITY, V> setter) {
+    public ReferenceFieldImpl(String tableName, String columnName, Getter<ENTITY, V> getter, Setter<ENTITY, V> setter) {
+        this.tableName  = requireNonNull(tableName);
         this.columnName = requireNonNull(columnName);
-        this.getter = requireNonNull(getter);
-        this.setter = requireNonNull(setter);
+        this.getter     = requireNonNull(getter);
+        this.setter     = requireNonNull(setter);
+    }
+    
+    @Override
+    public String getTableName() {
+        return tableName;
     }
 
     @Override

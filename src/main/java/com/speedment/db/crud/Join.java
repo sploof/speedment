@@ -17,7 +17,6 @@
 package com.speedment.db.crud;
 
 import com.speedment.annotation.Api;
-import com.speedment.config.Table;
 
 /**
  *
@@ -43,9 +42,9 @@ public interface Join {
     String getOtherColumnName();
     
     /**
-     * Returns the table that this operation should join with.
+     * Returns the name of the table that this operation should join with.
      * 
      * @return  the other table in the join
      */
-    Table getOtherTable();
+    String getOtherTableName();
 }

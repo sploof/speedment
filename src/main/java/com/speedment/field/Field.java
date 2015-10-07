@@ -28,11 +28,18 @@ import com.speedment.annotation.Api;
  */
 @Api(version = "2.1")
 public interface Field<ENTITY> {
+    
+    /**
+     * Returns the name of the table that this field is located in.
+     * 
+     * @return  the table name 
+     */
+    String getTableName();
 
     /**
      * Returns the column name that corresponds to this Field.
      *
-     * @return the name
+     * @return  the column name
      */
     String getColumnName();
 

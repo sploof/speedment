@@ -35,11 +35,11 @@ public interface CrudOperationBuilder<T extends CrudOperation> {
     CrudOperation.Type getType();
 
     /**
-     * Returns the {@link Table} that this operation should operate on.
+     * Returns the name of the table that this operation should operate on.
      *
-     * @return  the table
+     * @return  the table name
      */
-    Table getTable();
+    String getTableName();
     
     /**
      * Returns whether or not this builder will produce a CRUD operation that

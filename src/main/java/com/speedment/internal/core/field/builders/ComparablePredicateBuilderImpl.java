@@ -22,7 +22,6 @@ import java.util.Objects;
 import com.speedment.field.builders.ComparablePredicateBuilder;
 import com.speedment.field.operators.ComparableOperator;
 import static java.util.Objects.requireNonNull;
-import static java.util.Objects.requireNonNull;
 
 /**
  *

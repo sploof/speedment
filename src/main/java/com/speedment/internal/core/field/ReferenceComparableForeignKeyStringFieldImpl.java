@@ -17,13 +17,15 @@
 package com.speedment.internal.core.field;
 
 import com.speedment.field.ReferenceComparableForeignKeyStringField;
+import com.speedment.field.builders.ForeignKeyFinderBuilder;
 import com.speedment.field.methods.Getter;
 import com.speedment.field.methods.Setter;
+import com.speedment.internal.core.field.builders.ForeignKeyFinderBuilderImpl;
 import static java.util.Objects.requireNonNull;
 
 /**
  *
- * @author pemi
+ * @author Emil Forslund
  * @param <ENTITY> the entity type
  * @param <FK> the foreign entity type
  */
@@ -31,15 +33,19 @@ public class ReferenceComparableForeignKeyStringFieldImpl<ENTITY, FK>
     extends ReferenceComparableStringFieldImpl<ENTITY>
     implements ReferenceComparableForeignKeyStringField<ENTITY, FK> {
 
-    private final Getter<ENTITY, FK> finder;
+    private final ForeignKeyFinderBuilder<ENTITY, String, FK> finder;
+    private final String foreignTableName;
+    private final String foreignColumnName;
 
-    public ReferenceComparableForeignKeyStringFieldImpl(String columnName, Getter<ENTITY, String> getter, Setter<ENTITY, String> setter, Getter<ENTITY, FK> finder) {
-        super(columnName, getter, setter);
-        this.finder = requireNonNull(finder);
+    public ReferenceComparableForeignKeyStringFieldImpl(String tableName, String columnName, String foreignTableName, String foreignColumnName, Getter<ENTITY, String> getter, Setter<ENTITY, String> setter, Getter<ENTITY, FK> finder) {
+        super(tableName, columnName, getter, setter);
+        this.foreignTableName  = requireNonNull(foreignTableName);
+        this.foreignColumnName = requireNonNull(foreignColumnName);
+        this.finder            = new ForeignKeyFinderBuilderImpl<>(this, finder);
     }
 
     @Override
-    public Getter<ENTITY, FK> finder() {
+    public ForeignKeyFinderBuilder<ENTITY, String, FK> finder() {
         return finder;
     }
 
@@ -47,5 +53,15 @@ public class ReferenceComparableForeignKeyStringFieldImpl<ENTITY, FK>
     public FK findFrom(ENTITY entity) {
         requireNonNull(entity);
         return finder.apply(entity);
+    }
+    
+    @Override
+    public String getForeignTableName() {
+        return foreignTableName;
+    }
+
+    @Override
+    public String getForeignColumnName() {
+        return foreignColumnName;
     }
 }

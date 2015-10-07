@@ -17,7 +17,6 @@
 package com.speedment.db.crud;
 
 import com.speedment.annotation.Api;
-import com.speedment.config.Table;
 
 /**
  * @author Emil Forslund
@@ -39,9 +38,9 @@ public interface CrudOperation {
     Type getType();
 
     /**
-     * Returns the {@link Table} that this operation should operate on.
+     * Returns the name of the table that this operation should operate on.
      *
-     * @return  the table
+     * @return  the table name
      */
-    Table getTable();
+    String getTableName();
 }

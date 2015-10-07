@@ -37,7 +37,7 @@ import static java.util.Objects.requireNonNull;
  */
 public final class UpdateImpl implements Update {
 
-    private final Table table;
+    private final String table;
     private final List<Selector> selectors;
     private final Map<String, Object> values;
     private final long limit;
@@ -45,12 +45,12 @@ public final class UpdateImpl implements Update {
     /**
      * UpdateImpl should be constructed using the appropriate {@link Builder} class.
      *
-     * @param table      the table of the entity to update
+     * @param table      the name of the table of the entity to update
      * @param selectors  the selectors used to determine which entities to update
      * @param values     the new values to use
      * @param limit      the maximum number of entities to update
      */
-    private UpdateImpl(Table table, List<Selector> selectors, Map<String, Object> values, long limit) {
+    private UpdateImpl(String table, List<Selector> selectors, Map<String, Object> values, long limit) {
         this.table     = table;
         this.selectors = selectors;
         this.values    = values;
@@ -61,7 +61,7 @@ public final class UpdateImpl implements Update {
      * {@inheritDoc}
      */
     @Override
-    public Table getTable() {
+    public String getTableName() {
         return table;
     }
 
@@ -94,7 +94,7 @@ public final class UpdateImpl implements Update {
      */
     public static class Builder implements UpdateBuilder {
 
-        private final Table table;
+        private final String table;
         private final List<Selector> selectors;
         private final Map<String, Object> values;
         private long limit;
@@ -102,9 +102,9 @@ public final class UpdateImpl implements Update {
         /**
          * Constructs a builder for the specified {@link Table}.
          *
-         * @param table  the table
+         * @param table  the name of the table
          */
-        public Builder(Table table) {
+        public Builder(String table) {
             this.table     = requireNonNull(table);
             this.selectors = new ArrayList<>();
             this.values    = new ConcurrentHashMap<>();
@@ -163,7 +163,7 @@ public final class UpdateImpl implements Update {
          * {@inheritDoc}
          */
         @Override
-        public Table getTable() {
+        public String getTableName() {
             return table;
         }
 

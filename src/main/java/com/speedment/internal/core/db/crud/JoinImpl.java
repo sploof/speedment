@@ -18,6 +18,8 @@ package com.speedment.internal.core.db.crud;
 
 import com.speedment.config.Table;
 import com.speedment.db.crud.Join;
+import com.speedment.field.builders.ForeignKeyFinderBuilder;
+import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -29,19 +31,19 @@ public final class JoinImpl implements Join {
     
     private final String columnName;
     private final String otherColumnName;
-    private final Table otherTable;
+    private final String otherTableName;
 
     /**
      * Instantiates the Join.
      * 
      * @param columnName       the name of the local column
      * @param otherColumnName  the name of the foreign column
-     * @param otherTable       the name of the foreign table
+     * @param otherTableName   the name of the foreign table
      */
-    private JoinImpl(String columnName, String otherColumnName, Table otherTable) {
+    private JoinImpl(String columnName, String otherColumnName, String otherTableName) {
         this.columnName      = requireNonNull(columnName);
         this.otherColumnName = requireNonNull(otherColumnName);
-        this.otherTable      = requireNonNull(otherTable);
+        this.otherTableName  = requireNonNull(otherTableName);
     }
 
     /**
@@ -64,9 +66,25 @@ public final class JoinImpl implements Join {
      * {@inheritDoc}
      */
     @Override
-    public Table getOtherTable() {
-        return otherTable;
+    public String getOtherTableName() {
+        return otherTableName;
     }
     
-    // TODO figure out how the join should be instantiated...
+    /**
+     * Constructs a new {@link Join} based on a foreign key finder builder.
+     *
+     * @param <ENTITY>   the type of the entity
+     * @param <V>        the type of the value
+     * @param <FK>       the type of the foreign entity
+     * @param finder     the predicate
+     * @return           the constructed {@link Selector}
+     * @see              BinaryPredicateBuilder
+     */
+    public static <ENTITY, V, FK> Join fromForeignKeyFinder(ForeignKeyFinderBuilder<ENTITY, V, FK> finder) {
+        return new JoinImpl(
+            finder.getField().getColumnName(),
+            finder.getField().getForeignColumnName(),
+            finder.getField().getForeignTableName()
+        );
+    }
 }

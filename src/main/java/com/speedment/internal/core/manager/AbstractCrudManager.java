@@ -83,7 +83,7 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
     @Override
     public final Stream<ENTITY> stream() {
         return handler.read(
-            new ReadImpl.Builder(getTable())
+            new ReadImpl.Builder(getTable().getRelativeName(Dbms.class))
                 .build(),
             this::newInstance
         );
@@ -95,7 +95,7 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
     @Override
     public final ENTITY persist(ENTITY entity) throws SpeedmentException {
         return handler.create(
-            new CreateImpl.Builder(getTable())
+            new CreateImpl.Builder(getTable().getRelativeName(Dbms.class))
                 .with(valuesFor(entity))
                 .build(), 
             result -> addGeneratedValuesTo(entity, result)
@@ -108,7 +108,7 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
     @Override
     public final ENTITY update(ENTITY entity) throws SpeedmentException {
         return handler.update(
-            new UpdateImpl.Builder(getTable())
+            new UpdateImpl.Builder(getTable().getRelativeName(Dbms.class))
                 .with(valuesFor(entity))
                 .where(selectorFor(entity))
                 .build(), 
@@ -122,7 +122,7 @@ public abstract class AbstractCrudManager<ENTITY> extends AbstractManager<ENTITY
     @Override
     public final ENTITY remove(ENTITY entity) throws SpeedmentException {
         handler.delete(
-            new DeleteImpl.Builder(getTable())
+            new DeleteImpl.Builder(getTable().getRelativeName(Dbms.class))
                 .where(selectorFor(entity))
                 .build()
         );

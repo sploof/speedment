@@ -36,8 +36,8 @@ public class ReferenceComparableFieldImpl<ENTITY, V extends Comparable<? super V
     extends ReferenceFieldImpl<ENTITY, V> 
     implements ReferenceComparableField<ENTITY, V> {
 
-    public ReferenceComparableFieldImpl(String columnName, Getter<ENTITY, V> getter, Setter<ENTITY, V> setter) {
-        super(columnName, getter, setter);
+    public ReferenceComparableFieldImpl(String tableName, String columnName, Getter<ENTITY, V> getter, Setter<ENTITY, V> setter) {
+        super(tableName, columnName, getter, setter);
     }
 
     /**

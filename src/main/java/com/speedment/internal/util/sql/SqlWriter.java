@@ -213,7 +213,7 @@ public final class SqlWriter {
             );
         }
 
-        str.append(formatTableName(operation.getTable()));
+        str.append(formatTableName(operation.getTableName()));
 
         if (operation.getType() == CrudOperation.Type.UPDATE) {
             str.append(" SET ");
@@ -255,11 +255,11 @@ public final class SqlWriter {
     /**
      * Returns the name of the specified table formatted as appropriate for use in an SQL query.
      *
-     * @param table  the table
+     * @param tableName  the table
      * @return       the formatted table name
      */
-    private static String formatTableName(Table table) {
-        return table.getTableName().orElse(table.getName());
+    private static String formatTableName(String tableName) {
+        return tableName;
     }
 
     /**
